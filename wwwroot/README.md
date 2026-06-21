@@ -4,10 +4,6 @@ A free, open-source mobile web app for planning deep sky observation sessions wi
 
 Point your iPad or phone at any region of sky to instantly see a list of deep sky objects in that field of view, with a circular eyepiece overlay showing their positions, visibility information, and imaging notes.
 
-[Try it out](https://pgceddy.github.io/DeepSkyScanner/)
-
-<img width="820" height="1180" alt="IMG_0637" src="https://github.com/user-attachments/assets/0ab4ebeb-968e-4ad3-92ae-5eb1b8526512" />
-
 -----
 
 ## Features
