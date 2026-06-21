@@ -1770,11 +1770,24 @@ document.getElementById('plan-btn').addEventListener('click', ()=>{
 document.getElementById('timesl').addEventListener('input', e=>{
   S.planSlot = parseInt(e.target.value);
   updatePlanLabel();
-  // Recompute RA/Dec for the new time using current az/alt
-  const c = altAzToRaDec(S.alt, S.az, getPlanTs());
-  S.ra = c.ra; S.dec = c.dec;
-  updateDisplay();
-  if (S.live) scan();
+
+  if (S.locked) {
+    // Locked: keep the same RA/Dec patch of sky fixed.
+    // Don't recompute RA/Dec from az/alt — just re-evaluate
+    // altitude/visibility for the new time against the same coords,
+    // and re-rank/re-filter the object list for that same patch.
+    updateDisplay();
+    if (S.results.length) scan();
+  } else {
+    // Unlocked: recompute RA/Dec for the new time using current az/alt
+    // (the device is still physically pointed at the same spot in the sky,
+    // but which RA/Dec that corresponds to shifts with time)
+    const ts = S.planning ? getPlanTs() : undefined;
+    const c = altAzToRaDec(S.alt, S.az, ts);
+    S.ra = c.ra; S.dec = c.dec;
+    updateDisplay();
+    if (S.live) scan();
+  }
 });
 
 // ── Controls ───────────────────────────────────────────
