@@ -1329,7 +1329,7 @@ function drawEyepiece() {
   // (toward zenith) from your current pointing — that's the parallactic angle q.
   // q = angle from celestial north toward zenith, measured eastward (CW on sky).
   // In our north-up canvas: up=north, so zenith direction is rotated q clockwise from up.
-  const q = parallacticAngle(S.scanRA, S.scanDec, S.lat);
+  const q = -parallacticAngle(S.scanRA, S.scanDec, S.lat);
   // On canvas: up = -y, so zenith is at angle q clockwise from -y axis
   // dx = sin(q), dy = -cos(q)  (canvas y inverted)
   const zLen = R * 0.26;
