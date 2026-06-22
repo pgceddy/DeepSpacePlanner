@@ -336,6 +336,25 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
         <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
       </svg>Lock
     </button>
+    <button class="btn" id="search-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>Find
+    </button>
+  </div>
+
+  <!-- Search overlay -->
+  <div id="searchbar" style="display:none;flex-direction:column;background:#020a14;
+       border-bottom:1px solid #0d3a5c;flex-shrink:0">
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 14px">
+      <input id="searchinput" type="text" placeholder="Search object name or ID…"
+             style="flex:1;background:#060e18;border:1px solid #1a3a4a;color:#d4d4d4;
+                    font-family:var(--mono);font-size:.75rem;padding:7px 10px;outline:none">
+      <button onclick="closeSearch()" style="background:none;border:1px solid #1a3a4a;
+              color:#4aacf0;font-family:var(--mono);font-size:.62rem;padding:6px 10px;
+              cursor:pointer;letter-spacing:.06em">✕</button>
+    </div>
+    <div id="searchresults" style="max-height:220px;overflow-y:auto"></div>
   </div>
 
   <div class="qr">
@@ -417,11 +436,21 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 
     <!-- Visibility section -->
     <div class="dsect" id="d-vis">
-      <div class="dsect-hdr">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-        </svg>
-        Visibility Tonight
+      <div class="dsect-hdr" style="justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:6px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+          Visibility Tonight
+        </div>
+        <div id="d-time-nudge" style="display:none;align-items:center;gap:4px">
+          <button onclick="nudgeTime(-2)" style="background:none;border:1px solid #1a3a4a;
+                  color:#4aacf0;font-family:var(--mono);font-size:.6rem;padding:2px 7px;cursor:pointer">◀ 30m</button>
+          <span id="d-plan-time" style="font-family:var(--mono);font-size:.62rem;color:#e8920a;
+                min-width:44px;text-align:center"></span>
+          <button onclick="nudgeTime(2)" style="background:none;border:1px solid #1a3a4a;
+                  color:#4aacf0;font-family:var(--mono);font-size:.6rem;padding:2px 7px;cursor:pointer">30m ▶</button>
+        </div>
       </div>
       <div class="dsect-body" id="d-vis-body"></div>
     </div>
@@ -1329,7 +1358,7 @@ function drawEyepiece() {
   // (toward zenith) from your current pointing — that's the parallactic angle q.
   // q = angle from celestial north toward zenith, measured eastward (CW on sky).
   // In our north-up canvas: up=north, so zenith direction is rotated q clockwise from up.
-  const q = -parallacticAngle(S.scanRA, S.scanDec, S.lat);
+  const q = parallacticAngle(S.scanRA, S.scanDec, S.lat);
   // On canvas: up = -y, so zenith is at angle q clockwise from -y axis
   // dx = sin(q), dy = -cos(q)  (canvas y inverted)
   const zLen = R * 0.26;
@@ -1593,6 +1622,87 @@ function seestarNotes(o) {
   return notes.join(' ');
 }
 
+// ── Search ─────────────────────────────────────────────
+function openSearch() {
+  const bar = document.getElementById('searchbar');
+  bar.style.display = 'flex';
+  const inp = document.getElementById('searchinput');
+  inp.value = '';
+  document.getElementById('searchresults').innerHTML = '';
+  setTimeout(() => inp.focus(), 50);
+}
+
+function closeSearch() {
+  document.getElementById('searchbar').style.display = 'none';
+  document.getElementById('searchinput').value = '';
+  document.getElementById('searchresults').innerHTML = '';
+}
+
+function runSearch(q) {
+  const res = document.getElementById('searchresults');
+  if (!q) { res.innerHTML = ''; return; }
+  const lower = q.toLowerCase();
+  const matches = CATALOG.filter(o =>
+    o.id.toLowerCase().includes(lower) ||
+    o.name.toLowerCase().includes(lower)
+  ).slice(0, 30);
+
+  if (!matches.length) {
+    res.innerHTML = `<div style="padding:12px 14px;font-family:var(--mono);font-size:.65rem;color:#555">No objects found</div>`;
+    return;
+  }
+  res.innerHTML = matches.map(o => `
+    <div onclick="searchSelect('${o.id.replace(/'/g,"\\'")}') "
+         style="padding:10px 14px;border-bottom:1px solid #0d1f2a;cursor:pointer;
+                display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-family:var(--mono);font-size:.75rem;color:#d4d4d4">${o.name}</div>
+        <div style="font-family:var(--mono);font-size:.6rem;color:#4aacf0;margin-top:2px">
+          ${o.id !== o.name ? o.id + ' · ' : ''}${TNAME[o.type]||o.type}
+        </div>
+      </div>
+      <div style="font-family:var(--mono);font-size:.65rem;color:#e8920a">mag ${o.mag.toFixed(1)}</div>
+    </div>`).join('');
+}
+
+function searchSelect(id) {
+  closeSearch();
+  openDetail(id, 0);
+}
+
+document.getElementById('search-btn').addEventListener('click', openSearch);
+document.getElementById('searchinput').addEventListener('input', e => runSearch(e.target.value.trim()));
+document.getElementById('searchinput').addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeSearch();
+});
+
+// ── Detail time nudge ──────────────────────────────────
+let _detailObj = null; // track current detail object for nudge refresh
+
+function nudgeTime(slots) {
+  // slots: +2 = +30min, -2 = -30min
+  const sl = document.getElementById('timesl');
+  const newVal = Math.max(0, Math.min(54, S.planSlot + slots));
+  S.planSlot = newVal;
+  sl.value = newVal;
+  updatePlanLabel();
+  document.getElementById('d-plan-time').textContent = slotLabel(newVal);
+  // Refresh visibility for current object
+  if (_detailObj) {
+    document.getElementById('d-vis-body').innerHTML = buildVisibility(_detailObj);
+  }
+  // Re-scan if results are showing
+  if (S.results.length) {
+    if (S.locked) scan();
+    else {
+      const ts = getPlanTs();
+      const c = altAzToRaDec(S.alt, S.az, ts);
+      S.ra = c.ra; S.dec = c.dec;
+      updateDisplay();
+    }
+  }
+}
+
 function setWikiLink(el, o) {
   const searchTerm = encodeURIComponent(o.name !== o.id ? o.name : o.id);
   const wikiUrl = `https://en.wikipedia.org/wiki/Special:Search?search=${searchTerm}`;
@@ -1607,6 +1717,16 @@ function setWikiLink(el, o) {
 function openDetail(id, sep) {
   const o = CATALOG.find(x=>x.id===id);
   if (!o) return;
+  _detailObj = o;
+
+  // Show/hide time nudge based on planning mode
+  const nudge = document.getElementById('d-time-nudge');
+  if (S.planning) {
+    nudge.style.display = 'flex';
+    document.getElementById('d-plan-time').textContent = slotLabel(S.planSlot);
+  } else {
+    nudge.style.display = 'none';
+  }
 
   // Basic fields
   document.getElementById('d-ico').textContent  = TICON[o.type]||'🔭';
@@ -1770,24 +1890,11 @@ document.getElementById('plan-btn').addEventListener('click', ()=>{
 document.getElementById('timesl').addEventListener('input', e=>{
   S.planSlot = parseInt(e.target.value);
   updatePlanLabel();
-
-  if (S.locked) {
-    // Locked: keep the same RA/Dec patch of sky fixed.
-    // Don't recompute RA/Dec from az/alt — just re-evaluate
-    // altitude/visibility for the new time against the same coords,
-    // and re-rank/re-filter the object list for that same patch.
-    updateDisplay();
-    if (S.results.length) scan();
-  } else {
-    // Unlocked: recompute RA/Dec for the new time using current az/alt
-    // (the device is still physically pointed at the same spot in the sky,
-    // but which RA/Dec that corresponds to shifts with time)
-    const ts = S.planning ? getPlanTs() : undefined;
-    const c = altAzToRaDec(S.alt, S.az, ts);
-    S.ra = c.ra; S.dec = c.dec;
-    updateDisplay();
-    if (S.live) scan();
-  }
+  // Recompute RA/Dec for the new time using current az/alt
+  const c = altAzToRaDec(S.alt, S.az, getPlanTs());
+  S.ra = c.ra; S.dec = c.dec;
+  updateDisplay();
+  if (S.live) scan();
 });
 
 // ── Controls ───────────────────────────────────────────
