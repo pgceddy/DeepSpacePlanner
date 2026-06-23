@@ -855,7 +855,7 @@ const NGC_DATA = [
 
 
 // Define the ADQL Query joining basic properties with V-band fluxes
-const adqlQuery = "SELECT TOP 2000 oid, main_id, ra, dec, flux, otype, sp_type FROM basic b JOIN flux f ON b.oid = f.oidref  WHERE otype IN('GlC', 'OpC', 'G', 'PN', 'HII', 'SNR', 'RNe', 'GNe', 'Cl*', 'AGN', 'SyG', 'H2G') AND filter = 'V' and flux <= 13 and ra IS NOT NULL AND dec IS NOT NULL AND (main_id LIKE 'NGC%' OR main_id LIKE 'IC%');"
+const adqlQuery = "SELECT oid, main_id, ra, dec, flux, otype, sp_type FROM basic b JOIN flux f ON b.oid = f.oidref  WHERE otype IN('GlC', 'OpC', 'G', 'PN', 'HII', 'SNR', 'RNe', 'GNe', 'Cl*', 'AGN', 'SyG', 'H2G') AND filter = 'V' and flux <= 13 and ra IS NOT NULL AND dec IS NOT NULL AND (main_id LIKE 'NGC%' OR main_id LIKE 'IC%');"
 
 // 2. Prepare parameters for the POST request
 const params = new URLSearchParams();
