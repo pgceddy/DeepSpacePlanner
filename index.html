@@ -924,7 +924,7 @@ async function loadCatalog() {
             if (existing.has(id)) continue;
             const ra = parseFloat(row[iRa]);
             const dec = parseFloat(row[iDec]);
-            const mag = row[iMag] !== null ? parseFloat(row[iMag]) : 99.0;
+            const mag = row[iMag] !== null && row[iMag] !== undefined ? parseFloat(row[iMag]) : 99.0;
             const rawType = (row[iType] || '');
             const type = SIMBAD_OTYPES[rawType] || 'Gx';
             if (isNaN(ra) || isNaN(dec)) continue;
