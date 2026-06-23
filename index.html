@@ -924,7 +924,7 @@ async function loadCatalog() {
             if (existing.has(id)) continue;
             const ra = parseFloat(row[iRa]);
             const dec = parseFloat(row[iDec]);
-            const mag = row[iMag] !== null ? parseFloat(row[iMag]) : 13.0;
+            const mag = row[iMag] !== null ? parseFloat(row[iMag]) : 99.0;
             const rawType = (row[iType] || '');
             const type = SIMBAD_OTYPES[rawType] || 'Gx';
             if (isNaN(ra) || isNaN(dec)) continue;
@@ -1418,7 +1418,7 @@ function scan() {
     S.scanRA = S.ra; S.scanDec = S.dec;
     const r = S.fov / 2;
     S.results = CATALOG
-        .filter(o => o.mag <= S.mag)
+        .filter(o => o.mag <= S.mag || o.mag === 99.0)
         .filter(o => angSep(o.ra, o.dec, S.ra, S.dec) <= r)
         .sort((a, b) => {
             const ts = S.planning ? getPlanTs() : Date.now();
@@ -1739,7 +1739,7 @@ function openDetail(id, sep) {
   document.getElementById('d-dec').textContent  = fDec(o.dec);
   document.getElementById('d-ra2').textContent  = o.ra.toFixed(4)+'°';
   document.getElementById('d-dec2').textContent = o.dec.toFixed(4)+'°';
-  document.getElementById('d-mag').textContent  = o.mag.toFixed(1);
+  document.getElementById('d-mag').textContent  = o.mag === 99.0 ? '-' : o.mag.toFixed(1);
   document.getElementById('d-con').textContent  = o.con||'—';
   document.getElementById('d-sep').textContent  = sep.toFixed(3)+'° from scan center';
 
