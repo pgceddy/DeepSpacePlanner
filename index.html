@@ -835,7 +835,7 @@ const NGC_DATA = [
     ["NGC 7479", 346.2363, 12.3225, 11.0, "Gx", ""],
     ["NGC 7510", 347.5542, 60.5667, 7.9, "OC", ""],
     ["NGC 7606", 349.5092, -8.4858, 10.8, "Gx", ""],
-    ["NGC 7635", 350.2012, 61.2016, 10.8, "EN", "Bubble Nebula"],
+    // ["NGC 7635", 350.2012, 61.2016, 10.8, "EN", "Bubble Nebula"],
     ["NGC 7662", 351.0567, 42.5467, 8.3, "PN", "Blue Snowball"],
     ["NGC 7789", 359.3292, 56.7250, 6.7, "OC", "Caroline's Rose"],
     ["IC 342", 56.7021, 68.0958, 9.1, "Gx", ""],
@@ -856,7 +856,7 @@ const NGC_DATA = [
 
 // Define the ADQL Query joining basic properties with V-band fluxes
 //const adqlQuery = "SELECT oid, main_id, ra, dec, flux, otype, sp_type FROM basic b JOIN flux f ON b.oid = f.oidref  WHERE otype IN('GlC', 'OpC', 'G', 'PN', 'HII', 'SNR', 'RNe', 'GNe', 'Cl*', 'AGN', 'SyG', 'H2G') AND filter = 'V' and flux <= 13 and ra IS NOT NULL AND dec IS NOT NULL AND (main_id LIKE 'NGC%' OR main_id LIKE 'IC%');"
-const adgQuery = "SELECT b.oid, b.main_id, b.ra, b.dec, f.flux AS v_mag, b.otype, b.sp_type FROM basic b LEFT JOIN flux f ON b.oid = f.oidref AND f.filter = 'V' WHERE b.otype IN ('GlC', 'OpC', 'G', 'PN', 'HII', 'SNR', 'RNe', 'GNe', 'Cl*', 'AGN', 'SyG', 'H2G') AND b.ra IS NOT NULL AND b.dec IS NOT NULL AND (b.main_id LIKE 'NGC%' OR b.main_id LIKE 'IC%') AND (f.flux <= 13.0 OR f.flux IS NULL);"
+const adqlQuery = "SELECT b.oid, b.main_id, b.ra, b.dec, f.flux AS v_mag, b.otype, b.sp_type FROM basic b LEFT JOIN flux f ON b.oid = f.oidref AND f.filter = 'V' WHERE b.otype IN ('GlC', 'OpC', 'G', 'PN', 'HII', 'SNR', 'RNe', 'GNe', 'Cl*', 'AGN', 'SyG', 'H2G') AND b.ra IS NOT NULL AND b.dec IS NOT NULL AND (b.main_id LIKE 'NGC%' OR b.main_id LIKE 'IC%') AND (f.flux <= 13.0 OR f.flux IS NULL);"
 
 // 2. Prepare parameters for the POST request
 const params = new URLSearchParams();
