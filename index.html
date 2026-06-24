@@ -954,9 +954,9 @@ async function loadCatalog() {
                 if (!o.con && con) o.con = con;
                 if (o.name === id && name !== id) o.name = name; // upgrade to common name
             } else {
-                if (mag === 99.0 || parseFloat(mag) <= 13.0) {
+                if (mag === 99.0 || parseFloat(mag) <= parseFloat(13.0)) {
                     console.log(id);
-                    console.log(mag);
+                    console.log(parseFloat(mag));
                     continue;
                 }
                 CATALOG.push({ id, name, type, ra, dec, mag, con, desc: '' });
