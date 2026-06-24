@@ -954,8 +954,6 @@ async function loadCatalog() {
                 if (!o.con && con) o.con = con;
                 if (o.name === id && name !== id) o.name = name; // upgrade to common name
             } else {
-                console.log(id);
-                console.log(mag);
                 if (mag === 99.0 || mag <= 13.0) continue;
                 CATALOG.push({ id, name, type, ra, dec, mag, con, desc: '' });
                 existing.add(id);
