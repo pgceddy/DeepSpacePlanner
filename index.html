@@ -902,7 +902,7 @@ async function loadCatalog() {
     try {
         setCatSt(true, 'Loading OpenNGC catalog…');
 
-        const response = await fetch(GAVO_TAP, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' }, body: p.toString() });
+        const response = await fetch(GAVO_TAP, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p.toString() });
 
         if (!response.ok) {
             throw new Error(`HTTP Error! Status: ${response.status}`);
