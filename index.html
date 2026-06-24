@@ -978,6 +978,19 @@ function setCatSt(loading, msg) {
     el.querySelector('.spin').style.display = loading ? '' : 'none';
 }
 
+function normId(raw) {
+    return (raw || '').replace(/\s+/g, ' ').trim()
+        .replace(/^(NGC|IC)\s*0*(\d+)/, '$1 $2');
+}
+
+function safeMag(v, b) {
+    const vv = parseFloat(v), bv = parseFloat(b);
+    if (!isNaN(vv)) return vv;
+    if (!isNaN(bv)) return bv;
+    return 99.0;
+}
+
+
 
 // ── State ──────────────────────────────────────────────
 const S = {
