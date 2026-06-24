@@ -855,7 +855,7 @@ const NGC_DATA = [
 
 
 // Define the ADQL Query joining basic properties with V-band fluxes
-const adqlQuery = "SELECT name, raj2000, dej2000, obj_type, mag_v, mag_b, constellation, comname, messier_nr FROM openngc.data WHERE obj_type NOT IN ('*','**','*Ass','DrkN','Nova','NonEx','Dup','Other') AND (raj2000 IS NOT NULL AND dej2000 IS NOT NULL);"
+const adqlQuery = "SELECT name, raj2000, dej2000, obj_type, mag_v, mag_b, constellation, comname, messier_nr FROM openngc.data WHERE obj_type NOT IN ('*','**','*Ass','DrkN','Nova','NonEx','Dup','Other') AND raj2000 IS NOT NULL AND dej2000 IS NOT NULL"
 
     // 2. Prepare parameters for the POST request
 const p = new URLSearchParams();
@@ -902,7 +902,11 @@ async function loadCatalog() {
     try {
         setCatSt(true, 'Loading OpenNGC catalog…');
 
-        const response = await fetch(GAVO_TAP, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: p.toString() });
+        const response = await fetch(GAVO_TAP, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: p.toString()
+        });
 
         if (!response.ok) {
             throw new Error(`HTTP Error! Status: ${response.status}`);
