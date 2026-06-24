@@ -855,27 +855,29 @@ const NGC_DATA = [
 
 
 // Define the ADQL Query joining basic properties with V-band fluxes
-//const adqlQuery = "SELECT oid, main_id, ra, dec, flux, otype, sp_type FROM basic b JOIN flux f ON b.oid = f.oidref  WHERE otype IN('GlC', 'OpC', 'G', 'PN', 'HII', 'SNR', 'RNe', 'GNe', 'Cl*', 'AGN', 'SyG', 'H2G') AND filter = 'V' and flux <= 13 and ra IS NOT NULL AND dec IS NOT NULL AND (main_id LIKE 'NGC%' OR main_id LIKE 'IC%');"
-const adqlQuery = "SELECT b.oid, b.main_id, b.ra, b.dec, f.flux AS v_mag, b.otype, b.sp_type FROM basic b LEFT JOIN flux f ON b.oid = f.oidref AND f.filter = 'V' WHERE b.otype IN ('GlC', 'OpC', 'G', 'PN', 'HII', 'SNR', 'RNe', 'GNe', 'Cl*', 'AGN', 'SyG', 'H2G') AND b.ra IS NOT NULL AND b.dec IS NOT NULL AND (b.main_id LIKE 'NGC%' OR b.main_id LIKE 'IC%') AND (f.flux <= 13.0 OR f.flux IS NULL);"
+const adqlQuery = "SELECT name, raj2000, dej2000, obj_type, mag_v, mag_b, constellation, comname, messier_nr FROM openngc.data WHERE obj_type NOT IN ('*','**','*Ass','DrkN','Nova','NonEx','Dup','Other') AND (raj2000 IS NOT NULL AND dej2000 IS NOT NULL);"
 
-// 2. Prepare parameters for the POST request
-const params = new URLSearchParams();
-params.append('REQUEST', 'doQuery');
-params.append('LANG', 'ADQL');
-params.append('FORMAT', 'json'); // 'csv' or 'json' can also be used depending on preference
-params.append('QUERY', adqlQuery);
+    // 2. Prepare parameters for the POST request
+const p = new URLSearchParams();
+p.append('REQUEST', 'doQuery');
+p.append('LANG', 'ADQL');
+p.append('FORMAT', 'json');
+p.append('QUERY', adql);
 
-// CDS TAP Synchronous Endpoint
-const tapUrl = "https://simbad.u-strasbg.fr/simbad/sim-tap/sync";
 
-const SIMBAD_OTYPES = {
-    'G': 'Gx', 'AGN': 'Gx', 'SyG': 'Gx', 'H2G': 'Gx',
-    'GlC': 'GC',
-    'OpC': 'OC', 'Cl*': 'OC',
-    'HII': 'EN', 'GNe': 'EN', 'RNe': 'RN',
+// ── OpenNGC via GAVO TAP ──────────────────────────────
+const GAVO_TAP = 'https://dc.g-vo.org/tap/sync';
+
+const OPENNGC_TYPES = {
+    'G': 'Gx', 'GPair': 'Gx', 'GTrpl': 'Gx', 'GGroup': 'Gx',
+    'GCl': 'GC',
+    'OCl': 'OC', 'Cl+N': 'OC',
+    'HII': 'EN', 'EmN': 'EN', 'Neb': 'EN',
+    'RfN': 'RN',
     'PN': 'PN',
     'SNR': 'SNR',
 };
+
 
 function loadNGC() {
     const have = new Set(CATALOG.map(o => o.id));
@@ -898,9 +900,9 @@ async function loadCatalog() {
 
     // Step 2: Load SIMBAD in background
     try {
-        setCatSt(true, 'Loading SIMBAD catalog…');
+        setCatSt(true, 'Loading OpenNGC catalog…');
 
-        const response = await fetch(tapUrl, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' }, body: params.toString() });
+        const response = await fetch(GAVO_TAP, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'Accept': 'application/json' }, body: p.toString() });
 
         if (!response.ok) {
             throw new Error(`HTTP Error! Status: ${response.status}`);
@@ -908,40 +910,59 @@ async function loadCatalog() {
 
         const data = await response.json();
 
-        // The TAP JSON format groups column definitions and data array separately
         const cols = data.metadata.map(m => m.name);
-        const iId = cols.indexOf('main_id');
-        const iRa = cols.indexOf('ra');
-        const iDec = cols.indexOf('dec');
-        const iMag = cols.indexOf('flux');
-        const iType = cols.indexOf('otype');
+        const iName = cols.indexOf('name');
+        const iRa = cols.indexOf('raj2000');
+        const iDec = cols.indexOf('dej2000');
+        const iType = cols.indexOf('obj_type');
+        const iMagV = cols.indexOf('mag_v');
+        const iMagB = cols.indexOf('mag_b');
+        const iCon = cols.indexOf('constellation');
+        const iCom = cols.indexOf('comname');
+        const iMess = cols.indexOf('messier_nr');
+
         const existing = new Set(CATALOG.map(o => o.id));
-        let added = 0;
+        // Also build a map so we can patch existing entries with better data
+        const byId = {};
+        for (const o of CATALOG) byId[o.id] = o;
+
+        let gAdded = 0, patched = 0;
 
         for (const row of data.data) {
-            const rawId = (row[iId] || '').trim();
-            const id = rawId.replace(/\s+/g, ' ');
-            if (existing.has(id)) continue;
+            const id = normId(row[iName]);
             const ra = parseFloat(row[iRa]);
             const dec = parseFloat(row[iDec]);
-            const mag = row[iMag] !== null && row[iMag] !== undefined ? parseFloat(row[iMag]) : 99.0;
-            const rawType = (row[iType] || '');
-            const type = SIMBAD_OTYPES[rawType] || 'Gx';
-            if (isNaN(ra) || isNaN(dec)) continue;
-            CATALOG.push({ id, name: id, type, ra, dec, mag, con: '', desc: '' });
-            existing.add(id);
-            added++;
+            if (!id || isNaN(ra) || isNaN(dec)) continue;
+
+            const type = OPENNGC_TYPES[row[iType]] || 'Gx';
+            const mag = safeMag(row[iMagV], row[iMagB]);
+            const con = row[iCon] || '';
+
+            // Build best display name: common name > Messier > NGC/IC id
+            const messier = row[iMess] ? `M${row[iMess]}` : '';
+            const comname = (row[iCom] || '').split(',')[0].trim(); // first common name only
+            const name = comname || messier || id;
+
+            if (existing.has(id)) {
+                // Patch existing entry with better data from OpenNGC
+                const o = byId[id];
+                if (o.mag === 99.0 && mag < 99.0) { o.mag = mag; patched++; }
+                if (!o.con && con) o.con = con;
+                if (o.name === id && name !== id) o.name = name; // upgrade to common name
+            } else {
+                CATALOG.push({ id, name, type, ra, dec, mag, con, desc: '' });
+                existing.add(id);
+                byId[id] = CATALOG[CATALOG.length - 1];
+                gAdded++;
+            }
         }
 
-        setCatSt(false, `${CATALOG.length} objects ready (+${added} from SIMBAD)`);
-        setTimeout(() => document.getElementById('catst').classList.remove('on'), 3000);
-
-        //console.log("Columns:", data.metadata.map(m => m.name));
-        //console.log("Rows:", data.data);
+        setCatSt(false, `${CATALOG.length} objects ready (+${gAdded} OpenNGC, ${patched} patched)`);
+        setTimeout(() => document.getElementById('catst').classList.remove('on'), 4000);
 
     } catch (error) {
-        console.log('Failed to fetch data from SIMBAD:', error);
-        setCatSt(false, `${CATALOG.length} objects ready (SIMBAD offline)`);
+        console.warn('OpenNGC load failed:', e);
+        setCatSt(false, `${CATALOG.length} objects ready (OpenNGC offline)`);
         setTimeout(() => document.getElementById('catst').classList.remove('on'), 3000);
     }
 }
