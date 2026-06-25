@@ -1043,10 +1043,11 @@ function toggleSort() {
             if (S.sortBy === 'best') {
                 // Combined score: normalize altitude (0-90) and brightness (mag 0-15)
                 // Higher altitude = better, lower mag = brighter = better
+                // best: 70% altitude, 30% brightness, objects below 15° scored last
                 const altA = objectAltAtTime(a.ra, a.dec, ts);
                 const altB = objectAltAtTime(b.ra, b.dec, ts);
-                const scoreA = (altA / 90) - (Math.min(a.mag, 15) / 15);
-                const scoreB = (altB / 90) - (Math.min(b.mag, 15) / 15);
+                const scoreA = altA < 15 ? -999 : (altA / 90) * 0.7 - (Math.min(a.mag, 15) / 15) * 0.3;
+                const scoreB = altB < 15 ? -999 : (altB / 90) * 0.7 - (Math.min(b.mag, 15) / 15) * 0.3;
                 return scoreB - scoreA;
             }
         });
@@ -1465,10 +1466,11 @@ function scan() {
             if (S.sortBy === 'best') {
                 // Combined score: normalize altitude (0-90) and brightness (mag 0-15)
                 // Higher altitude = better, lower mag = brighter = better
+                // best: 70% altitude, 30% brightness, objects below 15° scored last
                 const altA = objectAltAtTime(a.ra, a.dec, ts);
                 const altB = objectAltAtTime(b.ra, b.dec, ts);
-                const scoreA = (altA / 90) - (Math.min(a.mag, 15) / 15);
-                const scoreB = (altB / 90) - (Math.min(b.mag, 15) / 15);
+                const scoreA = altA < 15 ? -999 : (altA / 90) * 0.7 - (Math.min(a.mag, 15) / 15) * 0.3;
+                const scoreB = altB < 15 ? -999 : (altB / 90) * 0.7 - (Math.min(b.mag, 15) / 15) * 0.3;
                 return scoreB - scoreA;
             }
             return angSep(a.ra, a.dec, S.ra, S.dec) - angSep(b.ra, b.dec, S.ra, S.dec);
