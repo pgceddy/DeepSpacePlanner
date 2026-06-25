@@ -1039,7 +1039,14 @@ function toggleSort() {
             if (S.sortBy === 'brightest')
                 return a.mag - b.mag;
             // best: highest altitude at plan/current time
-            return objectAltAtTime(b.ra, b.dec, ts) - objectAltAtTime(a.ra, a.dec, ts);
+            // return objectAltAtTime(b.ra, b.dec, ts) - objectAltAtTime(a.ra, a.dec, ts);
+            // Combined score: normalize altitude (0-90) and brightness (mag 0-15)
+            // Higher altitude = better, lower mag = brighter = better
+            const altA = objectAltAtTime(a.ra, a.dec, ts);
+            const altB = objectAltAtTime(b.ra, b.dec, ts);
+            const scoreA = (altA / 90) - (Math.min(a.mag, 15) / 15);
+            const scoreB = (altB / 90) - (Math.min(b.mag, 15) / 15);
+            return scoreB - scoreA;
         });
         renderList();
     }
@@ -1452,8 +1459,19 @@ function scan() {
         .sort((a, b) => {
             const ts = S.planning ? getPlanTs() : Date.now();
             if (S.sortBy === 'brightest') return a.mag - b.mag;
-            if (S.sortBy === 'best') return objectAltAtTime(b.ra, b.dec, ts) - objectAltAtTime(a.ra, a.dec, ts);
+            //if (S.sortBy === 'best') return objectAltAtTime(b.ra, b.dec, ts) - objectAltAtTime(a.ra, a.dec, ts);
+            if (S.sortBy === 'best') {
+                // Combined score: normalize altitude (0-90) and brightness (mag 0-15)
+                // Higher altitude = better, lower mag = brighter = better
+                const altA = objectAltAtTime(a.ra, a.dec, ts);
+                const altB = objectAltAtTime(b.ra, b.dec, ts);
+                const scoreA = (altA / 90) - (Math.min(a.mag, 15) / 15);
+                const scoreB = (altB / 90) - (Math.min(b.mag, 15) / 15);
+                return scoreB - scoreA;
+            }
+
             return angSep(a.ra, a.dec, S.ra, S.dec) - angSep(b.ra, b.dec, S.ra, S.dec);
+
         });
     renderList();
 }
