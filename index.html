@@ -1039,24 +1039,12 @@ function toggleSort() {
             if (S.sortBy === 'brightest')
                 return a.mag - b.mag;
             // best: highest altitude at plan/current time
-            return objectAltAtTime(b.ra, b.dec, ts) - objectAltAtTime(a.ra, a.dec, ts);
+            return objectAltAtTime(b.ra, b.dec, ts) - objectAltAtTime(a.ra, a.dec, ts) || a.mag - b.mag;
         });
         renderList();
     }
 }
 
-// function toggleSort() {
-//   S.sortBy = S.sortBy === 'nearest' ? 'brightest' : 'nearest';
-//   document.getElementById('sortbtn').textContent =
-//     S.sortBy === 'nearest' ? '⊙ Nearest' : '★ Brightest';
-//   // Re-sort existing results without re-scanning
-//   if (S.results.length) {
-//     S.results = S.sortBy === 'nearest'
-//       ? S.results.slice().sort((a,b) => angSep(a.ra,a.dec,S.scanRA,S.scanDec) - angSep(b.ra,b.dec,S.scanRA,S.scanDec))
-//       : S.results.slice().sort((a,b) => a.mag - b.mag);
-//     renderList();
-//   }
-// }
 
 // Filter alphas — lower = smoother but more lag
 const AZ_A  = 0.05;   // compass
@@ -1470,18 +1458,6 @@ function scan() {
     renderList();
 }
 
-
-// function scan() {
-//   S.scanRA = S.ra; S.scanDec = S.dec;
-//   const r = S.fov/2;
-//   S.results = CATALOG
-//     .filter(o => o.mag <= S.mag)
-//     .filter(o => angSep(o.ra,o.dec,S.ra,S.dec) <= r)
-//     .sort((a,b) => S.sortBy === 'brightest'
-//       ? a.mag - b.mag
-//       : angSep(a.ra,a.dec,S.ra,S.dec) - angSep(b.ra,b.dec,S.ra,S.dec));
-//   renderList();
-// }
 
 function renderList() {
   const empty  = document.getElementById('empty');
