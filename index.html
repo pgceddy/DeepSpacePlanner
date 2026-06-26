@@ -1609,7 +1609,8 @@ async function fetchWikiDetail(o) {
 
   for (const title of searches) {
     try {
-      const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
+      //const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
+      const url = 'https://en.wikipedia.org/api/rest_v1/page/html/${encodeURIComponent(title)}'
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 6000);
       const resp = await fetch(url, { signal: controller.signal });
