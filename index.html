@@ -1023,10 +1023,10 @@ const S = {
 };
 
 function toggleSort() {
-    // Cycle: nearest → brightest → best → nearest
-    if (S.sortBy === 'nearest') S.sortBy = 'brightest';
-    else if (S.sortBy === 'brightest') S.sortBy = 'best';
-    else S.sortBy = 'nearest';
+    // Cycle: best -> brightest -> nearest → best
+    if (S.sortBy === 'best') S.sortBy = 'brightest';
+    else if (S.sortBy === 'brightest') S.sortBy = 'nearest';
+    else S.sortBy = 'best';
 
     const labels = { nearest: '⊙ Nearest', brightest: '★ Brightest', best: '▲ Best' };
     document.getElementById('sortbtn').textContent = labels[S.sortBy];
