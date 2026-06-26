@@ -16,6 +16,7 @@ Point your iPad or phone at any region of sky to instantly see a list of deep sk
 - Real-time RA/Dec readout from device compass and tilt sensors
 - Tap **Scan** to capture all deep sky objects within your chosen field of view
 - Tap **Live** for continuous scanning as you sweep across the sky
+- Tap **Find** to lookup specific object and review details
 
 ### 🕐 Planning Mode
 
@@ -45,6 +46,7 @@ Point your iPad or phone at any region of sky to instantly see a list of deep sk
 - DSS2 color sky image from CDS/Aladin
 - **Visibility Tonight** — rise time, best viewing time (peak altitude), set time, current altitude bar
   - Automatically uses plan time when in planning mode
+  - Change plan time in detail sheet to see updated visibility information
   - Handles circumpolar objects correctly
 - **About This Object** — description pulled from Wikipedia
 - **Seestar S50 Notes** — practical imaging advice tailored to object type and brightness
@@ -53,7 +55,7 @@ Point your iPad or phone at any region of sky to instantly see a list of deep sk
 ### 🌐 Live Catalog
 
 - Built-in curated catalog of ~400 Messier and NGC/IC objects
-- Automatically enriched with additional objects from SIMBAD on load (requires network)
+- Automatically enriched with additional objects from OpenNGC on load (requires network)
 - Magnitude filter slider (6.0 to 14.0)
 - Field of view slider (5° to 60°)
 
@@ -63,7 +65,7 @@ Point your iPad or phone at any region of sky to instantly see a list of deep sk
 
 ### Basic Workflow
 
-1. Open the app in Safari on your iPad or iPhone
+1. Open the app in Safari/Chrome on your iPad or iPhone
 1. Grant compass and motion sensor permissions when prompted
 1. Point the device camera at the region of sky you want to explore
 1. Adjust the **FOV** and **MAG** sliders to match your session goals
