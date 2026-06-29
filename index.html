@@ -1574,7 +1574,7 @@ function renderList() {
     return `<div class="row" onclick="openDetail('${o.id.replace(/'/g,"\\'")}',${sep.toFixed(3)})">
       <div class="rico">${TICON[o.type]||'🔭'}</div>
       <div class="rmeta">
-        <div class="rname">${o.name}${o.id!==o.name?`<span>${o.id}</span>`:''}</div>
+        <div class="rname">${o.name}${o.id!==o.name?`<span>${o.id}</span>`:''}${getLog(o.id).length?`<span style="color:#a0e870;margin-left:6px">✓</span>`:''}</div>
         <div class="rsub">${TNAME[o.type]||o.type}${o.con?' · '+o.con:''}</div>
       </div>
       <div class="rcoord">
