@@ -211,6 +211,37 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
         text-transform:uppercase;cursor:pointer}
 .dclose:active{background:var(--panel)}
 
+
+/* Observation log */
+.logbtn{display:flex;align-items:center;gap:6px;margin:0 16px 4px;padding:10px 14px;
+        background:none;border:1px solid #1a3a4a;color:#4aacf0;cursor:pointer;width:calc(100% - 32px);
+        font-family:var(--mono);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase}
+.logbtn:active{background:#060e18}
+.logbtn svg{width:14px;height:14px;flex-shrink:0}
+.logbtn.logged{border-color:#a0e870;color:#a0e870}
+.log-entries{margin:0 16px 8px;display:flex;flex-direction:column;gap:6px}
+.log-entry{background:#060e18;border:1px solid #0d2030;padding:10px 12px;position:relative}
+.log-entry-date{font-family:var(--mono);font-size:.62rem;color:#e8920a;margin-bottom:4px}
+.log-entry-body{font-family:var(--mono);font-size:.65rem;color:#ccc;line-height:1.5}
+.log-entry-del{position:absolute;top:8px;right:8px;background:none;border:none;
+               color:#333;font-size:.7rem;cursor:pointer;padding:2px 5px}
+.log-entry-del:active{color:#f07050}
+.log-form{margin:0 16px 8px;background:#060e18;border:1px solid #1a3a4a;padding:12px}
+.log-form textarea{width:100%;background:#020408;border:1px solid #1a3a4a;color:#d4d4d4;
+                   font-family:var(--mono);font-size:.7rem;padding:8px;resize:none;
+                   outline:none;line-height:1.5;box-sizing:border-box}
+.log-form-row{display:flex;gap:8px;margin-top:8px}
+.log-form-row input{flex:1;background:#020408;border:1px solid #1a3a4a;color:#d4d4d4;
+                    font-family:var(--mono);font-size:.68rem;padding:6px 8px;outline:none}
+.log-form-row input::placeholder{color:#333}
+.log-save{background:#0d2030;border:1px solid #4aacf0;color:#4aacf0;
+          font-family:var(--mono);font-size:.62rem;padding:6px 14px;cursor:pointer;
+          letter-spacing:.08em;text-transform:uppercase}
+.log-cancel{background:none;border:1px solid #1a3a4a;color:#555;
+            font-family:var(--mono);font-size:.62rem;padding:6px 14px;cursor:pointer;
+            letter-spacing:.08em;text-transform:uppercase}
+
+
 /* AI sections */
 .dsect{padding:12px 16px;border-bottom:1px solid var(--border)}
 .dsect-hdr{font-family:var(--mono);font-size:.54rem;color:#4aacf0;
@@ -415,80 +446,121 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 
 <!-- Detail sheet -->
 <div id="sheet">
-  <div class="panel">
-    <div class="handle"></div>
-    <div id="imgwrap">
-      <div id="imgload"><div class="spin"></div>
-        <span style="font-family:var(--mono);font-size:.58rem;color:var(--lo)">Loading sky image…</span>
-      </div>
-      <img id="skyimg" alt="">
-      <div id="imgsrc"></div>
-      <div id="imgerr"></div>
-    </div>
-    <div class="dhdr">
-      <div class="dico" id="d-ico"></div>
-      <div class="dtg">
-        <div class="dname" id="d-name"></div>
-        <div class="did"   id="d-id"></div>
-        <div class="dtyp"  id="d-type"></div>
-      </div>
-    </div>
-
-    <!-- Visibility section -->
-    <div class="dsect" id="d-vis">
-      <div class="dsect-hdr" style="justify-content:space-between">
-        <div style="display:flex;align-items:center;gap:6px">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-          </svg>
-          Visibility Tonight
+    <div class="panel">
+        <div class="handle"></div>
+        <div id="imgwrap">
+            <div id="imgload">
+                <div class="spin"></div>
+                <span style="font-family:var(--mono);font-size:.58rem;color:var(--lo)">Loading sky image…</span>
+            </div>
+            <img id="skyimg" alt="">
+            <div id="imgsrc"></div>
+            <div id="imgerr"></div>
         </div>
-        <div id="d-time-nudge" style="display:none;align-items:center;gap:4px">
-          <button onclick="nudgeTime(-2)" style="background:none;border:1px solid #1a3a4a;
-                  color:#4aacf0;font-family:var(--mono);font-size:.6rem;padding:2px 7px;cursor:pointer">◀ 30m</button>
-          <span id="d-plan-time" style="font-family:var(--mono);font-size:.62rem;color:#e8920a;
+        <div class="dhdr">
+            <div class="dico" id="d-ico"></div>
+            <div class="dtg">
+                <div class="dname" id="d-name"></div>
+                <div class="did" id="d-id"></div>
+                <div class="dtyp" id="d-type"></div>
+            </div>
+        </div>
+
+        <!-- Visibility section -->
+        <div class="dsect" id="d-vis">
+            <div class="dsect-hdr" style="justify-content:space-between">
+                <div style="display:flex;align-items:center;gap:6px">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                    </svg>
+                    Visibility Tonight
+                </div>
+                <div id="d-time-nudge" style="display:none;align-items:center;gap:4px">
+                    <button onclick="nudgeTime(-2)" style="background:none;border:1px solid #1a3a4a;
+                  color:#4aacf0;font-family:var(--mono);font-size:.6rem;padding:2px 7px;cursor:pointer">
+                        ◀ 30m
+                    </button>
+                    <span id="d-plan-time" style="font-family:var(--mono);font-size:.62rem;color:#e8920a;
                 min-width:44px;text-align:center"></span>
-          <button onclick="nudgeTime(2)" style="background:none;border:1px solid #1a3a4a;
-                  color:#4aacf0;font-family:var(--mono);font-size:.6rem;padding:2px 7px;cursor:pointer">30m ▶</button>
+                    <button onclick="nudgeTime(2)" style="background:none;border:1px solid #1a3a4a;
+                  color:#4aacf0;font-family:var(--mono);font-size:.6rem;padding:2px 7px;cursor:pointer">
+                        30m ▶
+                    </button>
+                </div>
+            </div>
+            <div class="dsect-body" id="d-vis-body"></div>
         </div>
-      </div>
-      <div class="dsect-body" id="d-vis-body"></div>
-    </div>
 
-    <!-- AI Description section -->
-    <div class="dsect" id="d-ai">
-      <div class="dsect-hdr">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
-        </svg>
-        About This Object
-      </div>
-      <div class="dsect-body" id="d-ai-body"></div>
-    </div>
+        <!-- AI Description section -->
+        <div class="dsect" id="d-ai">
+            <div class="dsect-hdr">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3" />
+                    <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" />
+                </svg>
+                About This Object
+            </div>
+            <div class="dsect-body" id="d-ai-body"></div>
+        </div>
 
-    <!-- Seestar Notes section -->
-    <div class="dsect" id="d-seestar">
-      <div class="dsect-hdr">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-        </svg>
-        Seestar S50 Notes
-      </div>
-      <div class="dsect-body" id="d-seestar-body"></div>
-    </div>
+        <!-- Seestar Notes section -->
+        <div class="dsect" id="d-seestar">
+            <div class="dsect-hdr">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="12" />
+                    <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                Seestar S50 Notes
+            </div>
+            <div class="dsect-body" id="d-seestar-body"></div>
+        </div>
 
-    <!-- Coordinates grid -->
-    <div class="dgrid">
-      <div class="df"><label>Right Ascension</label><div class="v" id="d-ra"></div></div>
-      <div class="df"><label>Declination</label><div class="v" id="d-dec"></div></div>
-      <div class="df"><label>RA (decimal°)</label><div class="v" id="d-ra2"></div></div>
-      <div class="df"><label>Dec (decimal°)</label><div class="v" id="d-dec2"></div></div>
-      <div class="df"><label>Magnitude</label><div class="v" id="d-mag"></div></div>
-      <div class="df"><label>Constellation</label><div class="v" id="d-con"></div></div>
-      <div class="df full"><label>Separation from scan center</label><div class="v" id="d-sep"></div></div>
+        <!-- Observation log -->
+        <div class="dsect" id="d-log-sect">
+            <div class="dsect-hdr">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
+                    <polyline points="10 9 9 9 8 9" />
+                </svg>
+                My Observations
+            </div>
+            <div class="log-entries" id="d-log-entries"></div>
+            <div class="log-form" id="d-log-form" style="display:none">
+                <textarea id="d-log-notes" rows="3" placeholder="Notes — integration time, conditions, equipment…"></textarea>
+                <div class="log-form-row">
+                    <input type="date" id="d-log-date">
+                    <button class="log-save" onclick="saveLogEntry()">Save</button>
+                    <button class="log-cancel" onclick="cancelLogEntry()">Cancel</button>
+                </div>
+            </div>
+            <button class="logbtn" id="d-log-btn" onclick="startLogEntry()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="8" x2="12" y2="16" />
+                    <line x1="8" y1="12" x2="16" y2="12" />
+                </svg>
+                Log an observation
+            </button>
+        </div>
+
+
+        <!-- Coordinates grid -->
+        <div class="dgrid">
+            <div class="df"><label>Right Ascension</label><div class="v" id="d-ra"></div></div>
+            <div class="df"><label>Declination</label><div class="v" id="d-dec"></div></div>
+            <div class="df"><label>RA (decimal°)</label><div class="v" id="d-ra2"></div></div>
+            <div class="df"><label>Dec (decimal°)</label><div class="v" id="d-dec2"></div></div>
+            <div class="df"><label>Magnitude</label><div class="v" id="d-mag"></div></div>
+            <div class="df"><label>Constellation</label><div class="v" id="d-con"></div></div>
+            <div class="df full"><label>Separation from scan center</label><div class="v" id="d-sep"></div></div>
+        </div>
+        <button class="dclose" id="dclose">Close</button>
     </div>
-    <button class="dclose" id="dclose">Close</button>
-  </div>
 </div>
 
 <script>
@@ -1661,6 +1733,81 @@ function seestarNotes(o) {
   return notes.join(' ');
 }
 
+// ── Observation Log ────────────────────────────────────
+function logKey(id) { return `obslog:${id}`; }
+
+function getLog(id) {
+    try {
+        return JSON.parse(localStorage.getItem(logKey(id)) || '[]');
+    } catch (e) { return []; }
+}
+
+function saveLog(id, entries) {
+    localStorage.setItem(logKey(id), JSON.stringify(entries));
+}
+
+function renderLogEntries(id) {
+    const entries = getLog(id);
+    const el = document.getElementById('d-log-entries');
+    const btn = document.getElementById('d-log-btn');
+
+    if (!entries.length) {
+        el.innerHTML = '';
+        btn.classList.remove('logged');
+        btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/>
+    <line x1="8" y1="12" x2="16" y2="12"/></svg>Log an observation`;
+        return;
+    }
+
+    btn.classList.add('logged');
+    btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+<circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/>
+<line x1="8" y1="12" x2="16" y2="12"/></svg>Log another observation`;
+
+    el.innerHTML = entries.map((e, i) => `
+<div class="log-entry">
+    <button class="log-entry-del" onclick="deleteLogEntry('${id.replace(/'/g, "\\'")}',${i})">✕</button>
+    <div class="log-entry-date">${e.date || 'No date'}</div>
+    <div class="log-entry-body">${e.notes || '—'}</div>
+</div>`).join('');
+}
+
+function startLogEntry() {
+    const form = document.getElementById('d-log-form');
+    form.style.display = 'block';
+    // Default date to today
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('d-log-date').value = today;
+    document.getElementById('d-log-notes').value = '';
+    document.getElementById('d-log-notes').focus();
+}
+
+function cancelLogEntry() {
+    document.getElementById('d-log-form').style.display = 'none';
+}
+
+function saveLogEntry() {
+    if (!_detailObj) return;
+    const notes = document.getElementById('d-log-notes').value.trim();
+    const date = document.getElementById('d-log-date').value;
+    if (!notes && !date) return;
+
+    const entries = getLog(_detailObj.id);
+    entries.unshift({ date, notes, ts: Date.now() });
+    saveLog(_detailObj.id, entries);
+
+    document.getElementById('d-log-form').style.display = 'none';
+    renderLogEntries(_detailObj.id);
+}
+
+function deleteLogEntry(id, idx) {
+    const entries = getLog(id);
+    entries.splice(idx, 1);
+    saveLog(id, entries);
+    renderLogEntries(id);
+}
+
 // ── Search ─────────────────────────────────────────────
 function openSearch() {
   const bar = document.getElementById('searchbar');
@@ -1789,6 +1936,10 @@ function openDetail(id, sep) {
   // AI sections — reset description to loading, fire Wikipedia fetch
   document.getElementById('d-ai-body').innerHTML =
     '<div class="ai-loading"><div class="spin"></div>Loading from Wikipedia…</div>';
+
+  // Observation log
+  document.getElementById('d-log-form').style.display = 'none';
+  renderLogEntries(o.id);
 
   loadImg(o.ra, o.dec);
   document.getElementById('sheet').classList.add('on');
