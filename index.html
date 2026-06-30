@@ -1632,7 +1632,8 @@ function buildVisibility(o) {
   const nowAlt = objectAltAtTime(o.ra, o.dec, ts);
   const { rise, set, transit, peakAlt } = findRiseSetTransit(o.ra, o.dec, ts);
   const timeLabel = S.planning ? `At ${slotLabel(S.planSlot)}` : 'Right now';
-  const compassHeading = getCompassAzimuth(o.ra, o.dec,S.lat, S.lon, ts)
+  const d = new Date(ts);
+  const compassHeading = getCompassAzimuth(o.ra, o.dec,S.lat, S.lon, d)
 
   let statusClass = 'poor', statusText = 'Below horizon';
   if (nowAlt >= 30)      { statusClass='good'; statusText=`Good for imaging`; }
