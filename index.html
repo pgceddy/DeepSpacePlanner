@@ -1632,7 +1632,7 @@ function buildVisibility(o) {
   const nowAlt = objectAltAtTime(o.ra, o.dec, ts);
   const { rise, set, transit, peakAlt } = findRiseSetTransit(o.ra, o.dec, ts);
   const timeLabel = S.planning ? `At ${slotLabel(S.planSlot)}` : 'Right now';
-  const compassHeading = getCompassAzimuth(o.ra, o.dec, Math.sign(o.dec),s.lat, a.lon, ts)
+  const compassHeading = getCompassAzimuth(o.ra, o.dec,S.lat, S.lon, ts)
 
   let statusClass = 'poor', statusText = 'Below horizon';
   if (nowAlt >= 30)      { statusClass='good'; statusText=`Good for imaging`; }
@@ -2014,18 +2014,16 @@ function loadImg(ra, dec) {
 * 
 * @param {number} raDecimalHours - RA expressed in decimal form
 * @param {number} decDecimal - DEC Expressed in decimal form
-* @param {boolean} decIsPositive - True if Dec is North (+), False if South (-)
 * @param {number} observerLat - Observer Latitude in decimal degrees (North positive)
 * @param {number} observerLon - Observer Longitude in decimal degrees (East positive)
 * @param {Date} date - Date object of the observation time
 * @returns {number} Azimuth in degrees clockwise from North (0° = North, 90° = East)
 */
-    function getCompassAzimuth(raDecimalHours, decDecimal, decIsPositive, observerLat, observerLon, date) {
+    function getCompassAzimuth(raDecimalHours, decDecimal, observerLat, observerLon, date) {
     // 1. Convert RA to radians
     const raRad = raDecimalHours * 15 * (Math.PI / 180);
 
     // 2. Convert Declination to radians
-    if (!decIsPositive) decDecimal = -decDecimal;
     const decRad = decDecimal * (Math.PI / 180);
 
     // 3. Convert Latitude to radians
