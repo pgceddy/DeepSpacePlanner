@@ -2020,7 +2020,7 @@ function loadImg(ra, dec) {
 * @param {Date} date - Date object of the observation time
 * @returns {number} Azimuth in degrees clockwise from North (0° = North, 90° = East)
 */
-    function getCompassAzimuth(raDecimalHours, raDecimalHours, decIsPositive, observerLat, observerLon, date) {
+    function getCompassAzimuth(raDecimalHours, decDecimal, decIsPositive, observerLat, observerLon, date) {
     // 1. Convert RA to radians
     const raRad = raDecimalHours * 15 * (Math.PI / 180);
 
