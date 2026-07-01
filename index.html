@@ -1969,8 +1969,8 @@ function openDetail(id, sep) {
   // Seestar notes — instant, no network
   document.getElementById('d-seestar-body').textContent = seestarNotes(o);
 
-  // Siril processing notes 
-  document.getElementById('d-siril-body').textContent = getSirilNotes(o);
+    // Siril processing notes 
+    document.getElementById('d-siril-body').innerHTML = getSirilNotes(o);
 
   // AI sections — reset description to loading, fire Wikipedia fetch
   document.getElementById('d-ai-body').innerHTML =
@@ -2233,7 +2233,7 @@ function getProcessingTipKey(obj) {
 
 function getSirilNotes(obj) {
     const tipKey = getProcessingTipKey(obj);
-    let tipsLink = `<a href="https://pgceddy.github.io/deepskyscanner/tips.html#${tipKey}" target="_blank" class="tip-link">📷 Processing tips for this target type</a>`;
+    let tipsLink = `<a href="https://pgceddy.github.io/deepskyscanner/tips.html#${tipKey}" target="_blank" class="tip-link">Processing tips for this target type</a>`;
     return tipsLink;
 }
 
