@@ -1633,7 +1633,8 @@ function buildVisibility(o) {
   const { rise, set, transit, peakAlt } = findRiseSetTransit(o.ra, o.dec, ts);
   const timeLabel = S.planning ? `At ${slotLabel(S.planSlot)}` : 'Right now';
   const d = new Date(ts);
-  const compassHeading = getCompassAzimuth(o.ra, o.dec, S.lat, S.lon, d)
+  //const compassHeading = getCompassAzimuth(o.ra, o.dec, S.lat, S.lon, d)
+  const compassHeading = raDecToCompass(o.ra, o.dec, d, S.lat, S.lon);
   const compassDirection = degreesToDirection(compassHeading.toFixed(0))
 
   let statusClass = 'poor', statusText = 'Below horizon';
@@ -2089,6 +2090,78 @@ function loadImg(ra, dec) {
 }
 
 
+/**
+* Convert RA/Dec (decimal degrees) to a compass direction (and altitude/azimuth)
+* as seen from a given lat/long at a given time.
+*
+* @param {number} raDeg   Right Ascension in decimal degrees (0-360)
+* @param {number} decDeg  Declination in decimal degrees (-90 to 90)
+* @param {Date}   date    JS Date object (any timezone, converted to UTC internally)
+* @param {number} latDeg  Observer latitude in decimal degrees (+N, -S)
+* @param {number} lonDeg  Observer longitude in decimal degrees (+E, -W)
+* @returns {{ altitude: number, azimuth: number, compass: string }}
+*/
+
+function raDecToCompass(raDeg, decDeg, date, latDeg, lonDeg) {
+    const toRad = (d) => (d * Math.PI) / 180;
+    const toDeg = (r) => (r * 180) / Math.PI;
+
+    // --- 1. Julian Date (UTC) ---
+    const Y = date.getUTCFullYear();
+    const M = date.getUTCMonth() + 1;
+    const D =
+        date.getUTCDate() +
+        (date.getUTCHours() +
+            date.getUTCMinutes() / 60 +
+            date.getUTCSeconds() / 3600) /
+        24;
+
+    let y = Y, m = M;
+    if (m <= 2) { y -= 1; m += 12; }
+    const A = Math.floor(y / 100);
+    const B = 2 - A + Math.floor(A / 4);
+    const JD =
+        Math.floor(365.25 * (y + 4716)) +
+        Math.floor(30.6001 * (m + 1)) +
+        D + B - 1524.5;
+
+    // --- 2. Greenwich Mean Sidereal Time (degrees) ---
+    const T = (JD - 2451545.0) / 36525;
+    let gmst =
+        280.46061837 +
+        360.98564736629 * (JD - 2451545.0) +
+        0.000387933 * T * T -
+        (T * T * T) / 38710000;
+    gmst = ((gmst % 360) + 360) % 360;
+
+    // --- 3. Local Sidereal Time -> Hour Angle ---
+    const lst = ((gmst + lonDeg) % 360 + 360) % 360; // longitude east-positive
+    let H = lst - raDeg;
+    H = ((H + 180) % 360 + 360) % 360 - 180; // normalize to -180..180
+    const Hrad = toRad(H);
+
+    // --- 4. Altitude/Azimuth ---
+    const decRad = toRad(decDeg);
+    const latRad = toRad(latDeg);
+
+    const sinAlt =
+        Math.sin(decRad) * Math.sin(latRad) +
+        Math.cos(decRad) * Math.cos(latRad) * Math.cos(Hrad);
+    const altRad = Math.asin(sinAlt);
+
+    const cosAz =
+        (Math.sin(decRad) - Math.sin(altRad) * Math.sin(latRad)) /
+        (Math.cos(altRad) * Math.cos(latRad));
+    // clamp for floating point safety
+    const clampedCosAz = Math.min(1, Math.max(-1, cosAz));
+    let azRad = Math.acos(clampedCosAz);
+    let azimuth = toDeg(azRad);
+    if (Math.sin(Hrad) > 0) azimuth = 360 - azimuth;
+
+    const altitude = toDeg(altRad);
+
+    return azimuth;
+}
 
 
 document.getElementById('dclose').addEventListener('click', ()=>{
