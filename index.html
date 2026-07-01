@@ -1651,8 +1651,10 @@ function buildVisibility(o) {
   return `
     <div style="font-family:var(--mono);font-size:.6rem;color:#4aacf0;margin-bottom:8px">
       ${timeLabel}: <strong style="color:var(--amber)">${nowAlt.toFixed(1)}° altitude</strong>
-      &nbsp;·&nbsp; <strong style="color:var(--amber)">${compassHeading.toFixed(0)}° &nbsp;&nbsp;${compassDirection} </strong>
       &nbsp;·&nbsp; <span class="vstatus ${statusClass}">${statusText}</span>
+    </div>
+    <div style="font-family:var(--mono);font-size:.6rem;color:#4aacf0;margin-bottom:8px">
+        <strong style="color:var(--amber)">${compassDirection.toFixed(0)}° &nbsp;${compassHeading} </strong>        
     </div>
     <div class="vgrid">
       <div class="vcell">
