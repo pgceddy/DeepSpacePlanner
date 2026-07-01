@@ -2028,67 +2028,6 @@ function loadImg(ra, dec) {
   img.src = primary;
 }
 
-/**
-* Calculates the compass azimuth from RA, Dec, and observer location.
-* 
-* @param {number} raDecimalHours - RA expressed in decimal form
-* @param {number} decDecimal - DEC Expressed in decimal form
-* @param {number} observerLat - Observer Latitude in decimal degrees (North positive)
-* @param {number} observerLon - Observer Longitude in decimal degrees (East positive)
-* @param {Date} date - Date object of the observation time
-* @returns {number} Azimuth in degrees clockwise from North (0° = North, 90° = East)
-*/
-    function getCompassAzimuth(raDecimalHours, decDecimal, observerLat, observerLon, date) {
-    // 1. Convert RA to radians
-    const raRad = raDecimalHours * 15 * (Math.PI / 180);
-
-    // 2. Convert Declination to radians
-    const decRad = decDecimal * (Math.PI / 180);
-
-    // 3. Convert Latitude to radians
-    const latRad = observerLat * (Math.PI / 180);
-
-    // 4. Calculate Greenwich Sidereal Time (GST) in hours
-    // This is a standard approximation for the Greenwich meridian
-    const julianDate = (date.getTime() / 86400000) + 2440587.5;
-    const d = julianDate - 2451545.0;
-    let gst = 18.697374558 + 24.06570982441908 * d;
-    gst = gst % 24;
-    if (gst < 0) gst += 24;
-
-    // 5. Calculate Local Sidereal Time (LST) in hours
-    let lst = gst + (observerLon / 15);
-    lst = lst % 24;
-    if (lst < 0) lst += 24;
-
-    // 6. Calculate Local Hour Angle (LHA) in radians
-    let lhaHours = lst - raDecimalHours;
-    if (lhaHours < 0) lhaHours += 24;
-    const lhaRad = lhaHours * 15 * (Math.PI / 180);
-
-    // 7. Calculate Azimuth using spherical trigonometry
-    const sinLha = Math.sin(lhaRad);
-    const cosLha = Math.cos(lhaRad);
-    const sinLat = Math.sin(latRad);
-    const cosLat = Math.cos(latRad);
-    const tanDec = Math.tan(decRad);
-
-    const x = cosLha * sinLat - tanDec * cosLat;
-    const y = sinLha;
-
-    // Math.atan2(y, x) gives angle from South counter-clockwise. 
-    // We adjust it to map 0° to North, increasing clockwise.
-    let azimuthRad = Math.atan2(y, x);
-    let azimuthDeg = azimuthRad * (180 / Math.PI);
-
-    // Convert from "South-based" to "North-based" compass heading
-    let compassHeading = azimuthDeg + 180;
-    compassHeading = compassHeading % 360;
-    if (compassHeading < 0) compassHeading += 360;
-
-    return compassHeading;
-}
-
 
 /**
 * Convert RA/Dec (decimal degrees) to a compass direction (and altitude/azimuth)
