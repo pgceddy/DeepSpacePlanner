@@ -1633,7 +1633,8 @@ function buildVisibility(o) {
   const { rise, set, transit, peakAlt } = findRiseSetTransit(o.ra, o.dec, ts);
   const timeLabel = S.planning ? `At ${slotLabel(S.planSlot)}` : 'Right now';
   const d = new Date(ts);
-  const compassHeading = getCompassAzimuth(o.ra, o.dec,S.lat, S.lon, d)
+  const compassHeading = getCompassAzimuth(o.ra, o.dec, S.lat, S.lon, d)
+  const compassDirection = degreesToDirection(compassHeading.toFixed(0))
 
   let statusClass = 'poor', statusText = 'Below horizon';
   if (nowAlt >= 30)      { statusClass='good'; statusText=`Good for imaging`; }
@@ -1650,7 +1651,7 @@ function buildVisibility(o) {
   return `
     <div style="font-family:var(--mono);font-size:.6rem;color:#4aacf0;margin-bottom:8px">
       ${timeLabel}: <strong style="color:var(--amber)">${nowAlt.toFixed(1)}° altitude</strong>
-      &nbsp;·&nbsp; <strong style="color:var(--amber)">${compassHeading} heading</strong>
+      &nbsp;·&nbsp; <strong style="color:var(--amber)">${compassHeading.toFixed(0)}° &nbsp;&nbsp;${compassDirection} </strong>
       &nbsp;·&nbsp; <span class="vstatus ${statusClass}">${statusText}</span>
     </div>
     <div class="vgrid">
@@ -1735,6 +1736,21 @@ function seestarNotes(o) {
   }
   return notes.join(' ');
 }
+
+// Compass direction lookup.
+function degreesToDirection(degrees) {
+    const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
+
+    // Normalize degrees to be between 0 and 360
+    const normalizedDegrees = ((degrees % 360) + 360) % 360;
+
+    // Each of the 16 sectors spans exactly 22.5 degrees
+    const index = Math.round(normalizedDegrees / 22.5) % 16;
+
+    return directions[index];
+}
+
+
 
 // ── Observation Log ────────────────────────────────────
 function logKey(id) { return `obslog:${id}`; }
