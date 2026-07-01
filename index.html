@@ -2207,7 +2207,7 @@ function getProcessingTipKey(obj) {
     const mag = obj.mag ?? 99;
     const type = obj.type || '';
 
-    const isGalaxy = type.includes('G');
+    const isGalaxy = type === ('Gx');
     const isPlanetaryNebula = type === 'PN';
     const isNebula = type.includes('N') && !isPlanetaryNebula;
     const isOpenCluster = type === 'OC';
