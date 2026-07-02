@@ -6,31 +6,16 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="DSO Scanner">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#f7f4ec">
 <title>Deep Sky Scanner</title>
 <style>
 :root {
-  --bg:#000; --surf:#0a0a0a; --panel:#0f0f0f; --border:#1e1e1e;
-  --amber:#e8920a; --adim:#7a4d06; --alo:#2a1a02;
-  --text:#d4d4d4; --dim:#666; --lo:#2a2a2a;
+  --bg:#f7f4ec; --surf:#ffffff; --panel:#efe9db; --border:#ddd5c2;
+  --amber:#a3590f; --adim:#8a662f; --alo:#f5e7cc;
+  --text:#2a2620; --dim:#6b6558; --lo:#a89f8c;
   --mono:'SF Mono','Fira Mono','Courier New',monospace;
   --sans:-apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
 }
-/*:root {
-    --bg: #ffffff;
-    --surf: #f7f7f7;
-    --panel: #eeeeee;
-    --border: #dcdcdc;
-    --amber: #c27100;
-    --adim: #915400;
-    --alo: #fff1dc;
-    --text: #1a1a1a;
-    --dim: #666666;
-    --lo: #e5e5e5;
-    --mono: 'SF Mono','Fira Mono','Courier New',monospace;
-    --sans: -apple-system,BlinkMacSystemFont,'Helvetica Neue',sans-serif;
-}
-*/
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);
      min-height:100dvh;display:flex;flex-direction:column;overflow-x:hidden}
@@ -46,12 +31,12 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);
 #perm h1{font-family:var(--mono);font-size:.95rem;color:var(--amber);
          letter-spacing:.15em;text-transform:uppercase}
 #perm p{color:var(--text);font-size:.82rem;text-align:center;line-height:1.7;max-width:270px}
-#go{background:var(--amber);color:#000;border:none;font-family:var(--mono);
+#go{background:var(--amber);color:#fff;border:none;font-family:var(--mono);
     font-size:.85rem;font-weight:700;letter-spacing:.1em;padding:13px 32px;cursor:pointer}
 
 /* Debug panel — shown after permission, hides after first real heading */
-#debug{background:#0a0500;border-bottom:1px solid #3a2000;padding:6px 14px;
-       font-family:var(--mono);font-size:.6rem;color:#7a4d06;line-height:1.6;
+#debug{background:#fbf0dc;border-bottom:1px solid #e0c48f;padding:6px 14px;
+       font-family:var(--mono);font-size:.6rem;color:#8a662f;line-height:1.6;
        flex-shrink:0;display:none}
 #debug.on{display:block}
 
@@ -105,7 +90,7 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
      cursor:pointer;display:flex;align-items:center;justify-content:center;gap:5px;
      -webkit-appearance:none;border-radius:0}
 .btn:active{opacity:.7}
-.btn.primary{background:var(--amber);color:#000;border-color:var(--amber);font-weight:700}
+.btn.primary{background:var(--amber);color:#fff;border-color:var(--amber);font-weight:700}
 .btn.liveon{background:var(--alo);color:var(--amber);border-color:var(--adim)}
 .btn.lockon{color:var(--amber);border-color:var(--adim)}
 .btn svg{width:13px;height:13px;flex-shrink:0}
@@ -121,20 +106,20 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 .qv{font-family:var(--mono);font-size:.66rem;color:var(--adim);width:46px;text-align:right;flex-shrink:0}
 
 /* Planning mode banner */
-#planbar{display:none;flex-direction:column;gap:0;background:#020a14;
-         border-bottom:1px solid #0d3a5c;flex-shrink:0}
+#planbar{display:none;flex-direction:column;gap:0;background:#eaf4fb;
+         border-bottom:1px solid #bcdcf0;flex-shrink:0}
 #planbar.on{display:flex}
 .planhead{display:flex;align-items:center;gap:8px;padding:7px 14px 5px;
-          font-family:var(--mono);font-size:.62rem;color:#4aacf0;letter-spacing:.1em}
+          font-family:var(--mono);font-size:.62rem;color:#1c7fc0;letter-spacing:.1em}
 .planhead svg{width:12px;height:12px;flex-shrink:0}
 .planlbl{flex:1;text-transform:uppercase}
-#plantimeval{color:#7fd4ff;font-weight:700;letter-spacing:.04em}
+#plantimeval{color:#0f6fae;font-weight:700;letter-spacing:.04em}
 .planrow{display:flex;align-items:center;padding:4px 14px 8px;gap:8px}
-.planrow .ql{color:#1a5a80}
-#timesl{flex:1;-webkit-appearance:none;height:2px;background:#0d3a5c;outline:none;margin:0 10px}
+.planrow .ql{color:#1c7fc0}
+#timesl{flex:1;-webkit-appearance:none;height:2px;background:#bcdcf0;outline:none;margin:0 10px}
 #timesl::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
-  background:#4aacf0;border-radius:50%;cursor:pointer;box-shadow:0 0 6px rgba(74,172,240,.5)}
-.btn.planon{background:#020a14;color:#4aacf0;border-color:#0d3a5c}
+  background:#1c7fc0;border-radius:50%;cursor:pointer;box-shadow:0 0 6px rgba(28,127,192,.5)}
+.btn.planon{background:#eaf4fb;color:#1c7fc0;border-color:#bcdcf0}
 
 /* Eyepiece FOV view */
 #eyepiece-wrap{display:none;flex-direction:column;align-items:center;
@@ -178,7 +163,7 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 .row:active{background:var(--surf)}
 .rico{font-size:1.25rem;line-height:1;text-align:center}
 .rmeta{display:flex;flex-direction:column;gap:2px;min-width:0}
-.rname{font-size:.86rem;color:#e8e8e8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rname{font-size:.86rem;color:#2a2620;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .rname span{font-family:var(--mono);font-size:.62rem;color:var(--adim);margin-left:5px}
 .rsub{font-size:.66rem;color:var(--text)}
 .rcoord{display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0}
@@ -194,7 +179,7 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 .handle{width:32px;height:3px;background:var(--border);border-radius:2px;margin:11px auto 14px}
 
 /* Sky image */
-#imgwrap{width:100%;aspect-ratio:16/9;background:#040404;
+#imgwrap{width:100%;aspect-ratio:16/9;background:#efe9db;
          border-bottom:1px solid var(--border);position:relative;overflow:hidden}
 #skyimg{width:100%;height:100%;object-fit:cover;display:none}
 #skyimg.ok{display:block}
@@ -202,7 +187,7 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
          justify-content:center;flex-direction:column;gap:10px}
 #imgload .spin{width:16px;height:16px;border-width:2px}
 #imgsrc{position:absolute;bottom:5px;right:7px;font-family:var(--mono);
-        font-size:.52rem;color:rgba(255,255,255,.25)}
+        font-size:.52rem;color:rgba(42,38,32,.35)}
 #imgerr{display:none;font-family:var(--mono);font-size:.65rem;color:var(--lo);
         text-align:center;padding:20px;white-space:pre-line}
 
@@ -210,13 +195,13 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
       border-bottom:1px solid var(--border)}
 .dico{font-size:2rem;line-height:1}
 .dtg{flex:1}
-.dname{font-size:1.15rem;font-weight:600;color:#fff;line-height:1.2}
+.dname{font-size:1.15rem;font-weight:600;color:#2a2620;line-height:1.2}
 .did{font-family:var(--mono);font-size:.7rem;color:var(--amber);margin-top:2px}
 .dtyp{font-size:.76rem;color:var(--text);margin-top:3px}
 .ddesc{padding:12px 16px;font-size:.8rem;color:var(--text);line-height:1.65;
        border-bottom:1px solid var(--border)}
 .dgrid{padding:12px 16px;display:grid;grid-template-columns:1fr 1fr;gap:12px 20px}
-.df label{font-family:var(--mono);font-size:.54rem;color:#4aacf0;
+.df label{font-family:var(--mono);font-size:.54rem;color:#1c7fc0;
           letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:3px}
 .df .v{font-family:var(--mono);font-size:.78rem;color:var(--amber)}
 .df.full{grid-column:1/-1}
@@ -229,37 +214,37 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 
 /* Observation log */
 .logbtn{display:flex;align-items:center;gap:6px;margin:0 16px 4px;padding:10px 14px;
-        background:none;border:1px solid #1a3a4a;color:#4aacf0;cursor:pointer;width:calc(100% - 32px);
+        background:none;border:1px solid #bcdcf0;color:#1c7fc0;cursor:pointer;width:calc(100% - 32px);
         font-family:var(--mono);font-size:.65rem;letter-spacing:.08em;text-transform:uppercase}
-.logbtn:active{background:#060e18}
+.logbtn:active{background:#eaf4fb}
 .logbtn svg{width:14px;height:14px;flex-shrink:0}
-.logbtn.logged{border-color:#a0e870;color:#a0e870}
+.logbtn.logged{border-color:#2f7d2f;color:#2f7d2f}
 .log-entries{margin:0 16px 8px;display:flex;flex-direction:column;gap:6px}
-.log-entry{background:#060e18;border:1px solid #0d2030;padding:10px 12px;position:relative}
-.log-entry-date{font-family:var(--mono);font-size:.62rem;color:#e8920a;margin-bottom:4px}
-.log-entry-body{font-family:var(--mono);font-size:.65rem;color:#ccc;line-height:1.5}
+.log-entry{background:#eaf4fb;border:1px solid #bcdcf0;padding:10px 12px;position:relative}
+.log-entry-date{font-family:var(--mono);font-size:.62rem;color:#a3590f;margin-bottom:4px}
+.log-entry-body{font-family:var(--mono);font-size:.65rem;color:#2a2620;line-height:1.5}
 .log-entry-del{position:absolute;top:8px;right:8px;background:none;border:none;
-               color:#333;font-size:.7rem;cursor:pointer;padding:2px 5px}
-.log-entry-del:active{color:#f07050}
-.log-form{margin:0 16px 8px;background:#060e18;border:1px solid #1a3a4a;padding:12px}
-.log-form textarea{width:100%;background:#020408;border:1px solid #1a3a4a;color:#d4d4d4;
+               color:#b8b0a0;font-size:.7rem;cursor:pointer;padding:2px 5px}
+.log-entry-del:active{color:#b5451f}
+.log-form{margin:0 16px 8px;background:#eaf4fb;border:1px solid #bcdcf0;padding:12px}
+.log-form textarea{width:100%;background:#ffffff;border:1px solid #bcdcf0;color:#2a2620;
                    font-family:var(--mono);font-size:.7rem;padding:8px;resize:none;
                    outline:none;line-height:1.5;box-sizing:border-box}
 .log-form-row{display:flex;gap:8px;margin-top:8px}
-.log-form-row input{flex:1;background:#020408;border:1px solid #1a3a4a;color:#d4d4d4;
+.log-form-row input{flex:1;background:#ffffff;border:1px solid #bcdcf0;color:#2a2620;
                     font-family:var(--mono);font-size:.68rem;padding:6px 8px;outline:none}
-.log-form-row input::placeholder{color:#333}
-.log-save{background:#0d2030;border:1px solid #4aacf0;color:#4aacf0;
+.log-form-row input::placeholder{color:#a89f8c}
+.log-save{background:#eaf4fb;border:1px solid #1c7fc0;color:#1c7fc0;
           font-family:var(--mono);font-size:.62rem;padding:6px 14px;cursor:pointer;
           letter-spacing:.08em;text-transform:uppercase}
-.log-cancel{background:none;border:1px solid #1a3a4a;color:#555;
+.log-cancel{background:none;border:1px solid #bcdcf0;color:#6b6558;
             font-family:var(--mono);font-size:.62rem;padding:6px 14px;cursor:pointer;
             letter-spacing:.08em;text-transform:uppercase}
 
 
 /* AI sections */
 .dsect{padding:12px 16px;border-bottom:1px solid var(--border)}
-.dsect-hdr{font-family:var(--mono);font-size:.54rem;color:#4aacf0;
+.dsect-hdr{font-family:var(--mono);font-size:.54rem;color:#1c7fc0;
            letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;
            display:flex;align-items:center;gap:6px}
 .dsect-hdr svg{width:11px;height:11px;flex-shrink:0}
@@ -271,18 +256,18 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 /* Visibility grid */
 .vgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
 .vcell{background:var(--panel);padding:8px;text-align:center}
-.vcell label{font-family:var(--mono);font-size:.5rem;color:#4aacf0;
+.vcell label{font-family:var(--mono);font-size:.5rem;color:#1c7fc0;
              letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:3px}
 .vcell .vv{font-family:var(--mono);font-size:.78rem;color:var(--amber)}
 .vbar{height:4px;background:var(--border);margin-bottom:8px;border-radius:2px;overflow:hidden}
 .vbar-fill{height:100%;background:var(--amber);border-radius:2px;transition:width .4s}
-.vbarlbl{font-family:var(--mono);font-size:.56rem;color:#4aacf0;
+.vbarlbl{font-family:var(--mono);font-size:.56rem;color:#1c7fc0;
          display:flex;justify-content:space-between;margin-bottom:6px}
 .vstatus{font-family:var(--mono);font-size:.66rem;padding:5px 10px;
          display:inline-block;margin-bottom:4px}
-.vstatus.good{color:#a0e870;background:rgba(160,232,112,.1)}
-.vstatus.ok{color:var(--amber);background:rgba(232,146,10,.1)}
-.vstatus.poor{color:#f07050;background:rgba(240,112,80,.1)}
+.vstatus.good{color:#2f7d2f;background:rgba(47,125,47,.12)}
+.vstatus.ok{color:var(--amber);background:rgba(163,89,15,.12)}
+.vstatus.poor{color:#b5451f;background:rgba(181,69,31,.12)}
 </style>
 </head>
 <body>
@@ -320,23 +305,23 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
       <div class="cw">
         <div class="compass">
           <svg viewBox="0 0 64 64" fill="none">
-            <circle cx="32" cy="32" r="30" stroke="#181818" stroke-width="1"/>
+            <circle cx="32" cy="32" r="30" stroke="#ddd5c2" stroke-width="1"/>
             <!-- Cardinal ticks -->
-            <line x1="32" y1="4"  x2="32" y2="10" stroke="#282828" stroke-width="1.5"/>
-            <line x1="32" y1="54" x2="32" y2="60" stroke="#222" stroke-width="1"/>
-            <line x1="4"  y1="32" x2="10" y2="32" stroke="#222" stroke-width="1"/>
-            <line x1="54" y1="32" x2="60" y2="32" stroke="#222" stroke-width="1"/>
+            <line x1="32" y1="4"  x2="32" y2="10" stroke="#8a8270" stroke-width="1.5"/>
+            <line x1="32" y1="54" x2="32" y2="60" stroke="#8a8270" stroke-width="1"/>
+            <line x1="4"  y1="32" x2="10" y2="32" stroke="#8a8270" stroke-width="1"/>
+            <line x1="54" y1="32" x2="60" y2="32" stroke="#8a8270" stroke-width="1"/>
             <!-- N in amber so user sees where north is -->
             <text x="32" y="16" text-anchor="middle" font-family="monospace"
-                  font-size="7" fill="#e8920a" font-weight="bold">N</text>
-            <text x="32" y="54" text-anchor="middle" font-family="monospace" font-size="5.5" fill="#2a2a2a">S</text>
-            <text x="10.5" y="34.5" text-anchor="middle" font-family="monospace" font-size="5.5" fill="#2a2a2a">W</text>
-            <text x="53.5" y="34.5" text-anchor="middle" font-family="monospace" font-size="5.5" fill="#2a2a2a">E</text>
+                  font-size="7" fill="#a3590f" font-weight="bold">N</text>
+            <text x="32" y="54" text-anchor="middle" font-family="monospace" font-size="5.5" fill="#6b6558">S</text>
+            <text x="10.5" y="34.5" text-anchor="middle" font-family="monospace" font-size="5.5" fill="#6b6558">W</text>
+            <text x="53.5" y="34.5" text-anchor="middle" font-family="monospace" font-size="5.5" fill="#6b6558">E</text>
             <!-- Needle: amber tip points toward N label (top of SVG = North) -->
             <g id="needle">
-              <polygon points="32,11 29.5,33 34.5,33" fill="#e8920a" opacity=".95"/>
-              <polygon points="32,53 29.5,33 34.5,33" fill="#222"/>
-              <circle cx="32" cy="33" r="2.8" fill="#060606" stroke="#e8920a" stroke-width="1"/>
+              <polygon points="32,11 29.5,33 34.5,33" fill="#a3590f" opacity=".95"/>
+              <polygon points="32,53 29.5,33 34.5,33" fill="#6b6558"/>
+              <circle cx="32" cy="33" r="2.8" fill="#ffffff" stroke="#a3590f" stroke-width="1"/>
             </g>
           </svg>
         </div>
@@ -390,14 +375,14 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
   </div>
 
   <!-- Search overlay -->
-  <div id="searchbar" style="display:none;flex-direction:column;background:#020a14;
-       border-bottom:1px solid #0d3a5c;flex-shrink:0">
+  <div id="searchbar" style="display:none;flex-direction:column;background:#eaf4fb;
+       border-bottom:1px solid #bcdcf0;flex-shrink:0">
     <div style="display:flex;align-items:center;gap:8px;padding:8px 14px">
       <input id="searchinput" type="text" placeholder="Search object name or ID…"
-             style="flex:1;background:#060e18;border:1px solid #1a3a4a;color:#d4d4d4;
+             style="flex:1;background:#ffffff;border:1px solid #bcdcf0;color:#2a2620;
                     font-family:var(--mono);font-size:.75rem;padding:7px 10px;outline:none">
-      <button onclick="closeSearch()" style="background:none;border:1px solid #1a3a4a;
-              color:#4aacf0;font-family:var(--mono);font-size:.62rem;padding:6px 10px;
+      <button onclick="closeSearch()" style="background:none;border:1px solid #bcdcf0;
+              color:#1c7fc0;font-family:var(--mono);font-size:.62rem;padding:6px 10px;
               cursor:pointer;letter-spacing:.06em">✕</button>
     </div>
     <div id="searchresults" style="max-height:220px;overflow-y:auto"></div>
@@ -424,9 +409,9 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
       <span id="plantimeval">--:--</span>
     </div>
     <div class="planrow">
-      <span class="ql" style="color:#1a5a80">TIME</span>
+      <span class="ql" style="color:#1c7fc0">TIME</span>
       <input type="range" id="timesl" min="0" max="54" value="22" step="1">
-      <span class="qv" style="color:#4aacf0;width:46px;text-align:right;font-family:var(--mono);font-size:.66rem" id="timeval">10:00p</span>
+      <span class="qv" style="color:#1c7fc0;width:46px;text-align:right;font-family:var(--mono);font-size:.66rem" id="timeval">10:00p</span>
     </div>
   </div>
 
@@ -492,14 +477,14 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
                     Visibility Tonight
                 </div>
                 <div id="d-time-nudge" style="display:none;align-items:center;gap:4px">
-                    <button onclick="nudgeTime(-2)" style="background:none;border:1px solid #1a3a4a;
-                  color:#4aacf0;font-family:var(--mono);font-size:.6rem;padding:2px 7px;cursor:pointer">
+                    <button onclick="nudgeTime(-2)" style="background:none;border:1px solid #bcdcf0;
+                  color:#1c7fc0;font-family:var(--mono);font-size:.6rem;padding:2px 7px;cursor:pointer">
                         ◀ 30m
                     </button>
-                    <span id="d-plan-time" style="font-family:var(--mono);font-size:.62rem;color:#e8920a;
+                    <span id="d-plan-time" style="font-family:var(--mono);font-size:.62rem;color:#a3590f;
                 min-width:44px;text-align:center"></span>
-                    <button onclick="nudgeTime(2)" style="background:none;border:1px solid #1a3a4a;
-                  color:#4aacf0;font-family:var(--mono);font-size:.6rem;padding:2px 7px;cursor:pointer">
+                    <button onclick="nudgeTime(2)" style="background:none;border:1px solid #bcdcf0;
+                  color:#1c7fc0;font-family:var(--mono);font-size:.6rem;padding:2px 7px;cursor:pointer">
                         30m ▶
                     </button>
                 </div>
@@ -1604,7 +1589,7 @@ function renderList() {
     return `<div class="row" onclick="openDetail('${o.id.replace(/'/g,"\\'")}',${sep.toFixed(3)})">
       <div class="rico">${TICON[o.type]||'🔭'}</div>
       <div class="rmeta">
-        <div class="rname">${o.name}${o.id!==o.name?`<span>${o.id}</span>`:''}${getLog(o.id).length?`<span style="color:#a0e870;margin-left:6px">✓</span>`:''}</div>
+        <div class="rname">${o.name}${o.id!==o.name?`<span>${o.id}</span>`:''}${getLog(o.id).length?`<span style="color:#2f7d2f;margin-left:6px">✓</span>`:''}</div>
         <div class="rsub">${TNAME[o.type]||o.type}${o.con?' · '+o.con:''}</div>
       </div>
       <div class="rcoord">
@@ -1680,7 +1665,7 @@ function buildVisibility(o) {
   const transitStr = transit ? fmtTime(transit) : '—';
 
   return `
-    <div style="font-family:var(--mono);font-size:.6rem;color:#4aacf0;margin-bottom:8px">
+    <div style="font-family:var(--mono);font-size:.6rem;color:#1c7fc0;margin-bottom:8px">
       ${timeLabel}: <strong style="color:var(--amber)">${nowAlt.toFixed(1)}° altitude</strong>
       &nbsp;·&nbsp; <strong style="color:var(--amber)">${compassDirection}${compassHeading.toFixed(0)}° Heading</strong>
       &nbsp;·&nbsp; <span class="vstatus ${statusClass}">${statusText}</span>
@@ -1694,7 +1679,7 @@ function buildVisibility(o) {
       <div class="vcell">
         <label>Best time (peak)</label>
         <div class="vv">${transitStr}</div>
-        <div style="font-family:var(--mono);font-size:.52rem;color:#4aacf0">${peakAlt.toFixed(0)}° max alt</div>
+        <div style="font-family:var(--mono);font-size:.52rem;color:#1c7fc0">${peakAlt.toFixed(0)}° max alt</div>
       </div>
       <div class="vcell">
         <label>Sets below 10°</label>
@@ -1885,20 +1870,20 @@ function runSearch(q) {
   ).slice(0, 30);
 
   if (!matches.length) {
-    res.innerHTML = `<div style="padding:12px 14px;font-family:var(--mono);font-size:.65rem;color:#555">No objects found</div>`;
+    res.innerHTML = `<div style="padding:12px 14px;font-family:var(--mono);font-size:.65rem;color:#6b6558">No objects found</div>`;
     return;
   }
   res.innerHTML = matches.map(o => `
     <div onclick="searchSelect('${o.id.replace(/'/g,"\\'")}') "
-         style="padding:10px 14px;border-bottom:1px solid #0d1f2a;cursor:pointer;
+         style="padding:10px 14px;border-bottom:1px solid #bcdcf0;cursor:pointer;
                 display:flex;justify-content:space-between;align-items:center">
       <div>
-        <div style="font-family:var(--mono);font-size:.75rem;color:#d4d4d4">${o.name}</div>
-        <div style="font-family:var(--mono);font-size:.6rem;color:#4aacf0;margin-top:2px">
+        <div style="font-family:var(--mono);font-size:.75rem;color:#2a2620">${o.name}</div>
+        <div style="font-family:var(--mono);font-size:.6rem;color:#1c7fc0;margin-top:2px">
           ${o.id !== o.name ? o.id + ' · ' : ''}${TNAME[o.type]||o.type}
         </div>
       </div>
-      <div style="font-family:var(--mono);font-size:.65rem;color:#e8920a">mag ${o.mag.toFixed(1)}</div>
+      <div style="font-family:var(--mono);font-size:.65rem;color:#a3590f">mag ${o.mag.toFixed(1)}</div>
     </div>`).join('');
 }
 
@@ -1945,7 +1930,7 @@ function setWikiLink(el, o) {
   const wikiUrl = `https://en.wikipedia.org/wiki/Special:Search?search=${searchTerm}`;
   el.innerHTML = `<span style="font-family:var(--mono);font-size:.7rem;color:var(--text)">Description unavailable inline.</span>
     <a href="${wikiUrl}" target="_blank"
-       style="display:block;margin-top:8px;font-family:var(--mono);font-size:.65rem;color:#4aacf0">
+       style="display:block;margin-top:8px;font-family:var(--mono);font-size:.65rem;color:#1c7fc0">
       🔍 Search Wikipedia for ${o.name} →
     </a>`;
 }
@@ -2007,7 +1992,7 @@ function openDetail(id, sep) {
         const link = document.createElement('a');
         link.href = url; link.target = '_blank';
         link.textContent = 'Read more on Wikipedia →';
-        link.style.cssText = 'display:block;margin-top:8px;font-family:var(--mono);font-size:.6rem;color:#4aacf0';
+        link.style.cssText = 'display:block;margin-top:8px;font-family:var(--mono);font-size:.6rem;color:#1c7fc0';
         body.appendChild(link);
         }
       // set image from wikipedia if it is available
@@ -2248,7 +2233,7 @@ function getProcessingTipKey(obj) {
 
 function getSirilNotes(obj) {
     const tipKey = getProcessingTipKey(obj);
-    let tipsLink = `<a href="https://pgceddy.github.io/DeepSpacePlanner/tips.html#${tipKey}" target="_blank" style="display:block;margin-top:8px;font-family:var(--mono);font-size:.65rem;color:#4aacf0">Processing tips for this target type</a>`;
+    let tipsLink = `<a href="https://pgceddy.github.io/DeepSpacePlanner/tips.html#${tipKey}" target="_blank" style="display:block;margin-top:8px;font-family:var(--mono);font-size:.65rem;color:#1c7fc0">Processing tips for this target type</a>`;
     return tipsLink;
 }
 
