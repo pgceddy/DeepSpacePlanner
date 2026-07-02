@@ -17,6 +17,42 @@
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
+
+  .closebar{
+    position:sticky;
+    top:0;
+    z-index:10;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    background:var(--bg-panel);
+    border-bottom:1px solid var(--line);
+    padding:10px 20px;
+    font-family:'SF Mono','Menlo',monospace;
+    font-size:12px;
+  }
+  .closebar a{
+    color:var(--ink-dim);
+    text-decoration:none;
+    display:flex;
+    align-items:center;
+    gap:6px;
+    letter-spacing:0.02em;
+  }
+  .closebar a:hover, .closebar a:focus-visible{color:var(--amber);}
+  .closebar .closebtn{
+    color:var(--ink);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:5px 11px;
+    background:var(--bg);
+    cursor:pointer;
+    font-family:inherit;
+    font-size:12px;
+  }
+  .closebar .closebtn:hover{border-color:var(--amber-dim);color:var(--amber);}
+
   body{
     background:var(--bg);
     color:var(--ink);
@@ -218,6 +254,20 @@
 </style>
 </head>
 <body>
+<div class="closebar">
+  <a href="https://pgceddy.github.io/DeepSpacePlanner/" id="backlink">&larr; Back to DeepSkyScanner</a>
+  <button class="closebtn" id="closeBtn" onclick="closeTab()">&times; Close</button>
+</div>
+<script>
+  function closeTab(){
+    // Works only if this tab was opened via script (window.open); otherwise falls back to navigating back to the app.
+    window.close();
+    setTimeout(function(){
+      window.location.href = document.getElementById('backlink').href;
+    }, 250);
+  }
+</script>
+
 <div class="wrap">
 
   <header class="masthead">
