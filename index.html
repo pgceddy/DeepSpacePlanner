@@ -1057,7 +1057,7 @@ async function loadCatalog() {
     } catch (error) {
         console.warn('OpenNGC load failed:', error);
         setCatSt(false, `${CATALOG.length} objects ready (OpenNGC offline)`);
-        setTimeout(() => document.getElementById('catst').classList.remove('on'), 3000);
+        setTimeout(() => document.getElementById('catst').classList.remove('on'), 8000);
     }
 }
 
