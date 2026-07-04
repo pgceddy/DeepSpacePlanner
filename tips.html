@@ -305,10 +305,10 @@
         <span class="why">Sample points only in clean sky around the galaxy — never on or near the core.</span>
         <code class="cmd"><span class="menu">Image Processing → Background Extraction → RBF, place sample points manually around (not on) the galaxy</span>
 <span class="console">subsky -rbf -samples=20</span></code></li>
-      <li><b>Photometric Color Calibration (PCC).</b>
-        <span class="why">Works well as long as the field has a reasonable star count.</span>
-        <code class="cmd"><span class="menu">Image Processing → Color Calibration → Photometric Color Calibration</span>
-<span class="console">pcc</span></code></li>
+      <li><b>Spectrophotometric Color Calibration (SPCC).</b>
+        <span class="why">More accurate than PCC and makes it obsolete — worth using by default now that it's built into Siril (1.4+). Needs the image plate-solved first, same as PCC did.</span>
+        <code class="cmd"><span class="menu">Ctrl+Shift+C, or Image Processing → Color Calibration → Spectrophotometric Color Calibration</span>
+<span class="console">spcc</span></code></li>
       <li><b>Stretch with Generalized Hyperbolic Stretch (GHS), not a single Asinh pass.</b>
         <span class="why">Gives control to pull up the faint core without blowing out field stars.</span>
         <code class="cmd"><span class="menu">Image Processing → Generalized Hyperbolic Stretch — start with a low stretch factor (SP near shadow clip), iterate in small passes</span></code></li>
@@ -343,8 +343,8 @@ stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
       <li><b>Background Extraction</b>, sampling well outside the galaxy's outer disk.
         <code class="cmd"><span class="menu">Image Processing → Background Extraction → RBF or Polynomial degree 2–4</span>
 <span class="console">subsky -rbf -samples=20</span></code></li>
-      <li><b>PCC</b> for color, then a moderate GHS or Asinh stretch — you have more dynamic range to work with than a faint target, so you can afford a gentler curve.
-        <code class="cmd"><span class="console">pcc</span>
+      <li><b>SPCC</b> for color, then a moderate GHS or Asinh stretch — you have more dynamic range to work with than a faint target, so you can afford a gentler curve.
+        <code class="cmd"><span class="console">spcc</span>
 <span class="menu">then Image Processing → Generalized Hyperbolic Stretch, moderate strength</span></code></li>
       <li><b>Sharpen the core selectively</b> (star mask or luminance mask) once structure is visible, rather than sharpening the whole frame.
         <code class="cmd"><span class="menu">Extract luminance (if OSC: Image → Extract Channels), apply Wavelet/Unsharp sharpening to luminance only, recombine</span></code></li>
@@ -368,8 +368,9 @@ stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
       <li><b>Background Extraction with more sample points</b>, spread around the full frame margin since gradients are more visible across a wider field.
         <code class="cmd"><span class="menu">Image Processing → Background Extraction → RBF, manually add 30+ sample points around the frame perimeter</span>
 <span class="console">subsky -rbf -samples=30</span></code></li>
-      <li><b>SPCC (Spectrophotometric Color Calibration) in PixInsight</b> if available — more accurate across multiple galaxies of different types than single-target PCC.
-        <code class="cmd"><span class="menu">PixInsight → Process → Color Calibration → SpectrophotometricColorCalibration</span></code></li>
+      <li><b>SPCC (Spectrophotometric Color Calibration)</b> — more accurate across multiple galaxies of different types than PCC ever was, and it's built into Siril directly (1.4+), no need to round-trip through PixInsight anymore.
+        <code class="cmd"><span class="menu">Ctrl+Shift+C, or Image Processing → Color Calibration → Spectrophotometric Color Calibration</span>
+<span class="console">spcc</span></code></li>
       <li><b>Stretch in stages</b>: a first pass for the brightest cores, a second targeted pass for fainter group members, blended back together.
         <code class="cmd"><span class="menu">Duplicate the image, stretch each copy differently (core-protected vs. group-boosted), blend with a luminance mask</span></code></li>
       <li><b>Annotate before you crop.</b>
@@ -461,8 +462,8 @@ stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
         <span class="why">Stars are point sources with good SNR relative to diffuse targets — don't over-integrate at the expense of a session on something fainter.</span></li>
       <li><b>Background Extraction is usually light-touch</b> — clusters rarely have strong gradients unless embedded in nebulosity.
         <code class="cmd"><span class="menu">Image Processing → Background Extraction → Polynomial degree 1–2</span></code></li>
-      <li><b>PCC for accurate star colors</b> — this is where color calibration actually shows, since the eye reads star color directly.
-        <code class="cmd"><span class="console">pcc</span></code></li>
+      <li><b>SPCC for accurate star colors</b> — this is where color calibration actually shows, since the eye reads star color directly.
+        <code class="cmd"><span class="console">spcc</span></code></li>
       <li><b>Avoid heavy star reduction</b> — the stars are the subject, not competition for it.
         <code class="cmd"><span class="menu">Skip star reduction tools entirely, or use at very low strength if star-crowding is an issue</span></code></li>
       <li><b>Watch bright-star halos/blooming</b> and manage with a gentle highlight rolloff rather than clipping.
@@ -506,8 +507,8 @@ register pp_light
 stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
       <li><b>Background Extraction</b> before any stretch.
         <code class="cmd"><span class="console">subsky -rbf -samples=20</span></code></li>
-      <li><b>PCC</b> for color calibration.
-        <code class="cmd"><span class="console">pcc</span></code></li>
+      <li><b>SPCC</b> for color calibration.
+        <code class="cmd"><span class="console">spcc</span></code></li>
       <li><b>GHS stretch</b>, checking histogram carefully rather than trusting autostretch defaults.
         <code class="cmd"><span class="menu">Image Processing → Generalized Hyperbolic Stretch, watch the histogram panel as you adjust rather than relying on the auto preview</span></code></li>
       <li><b>Denoise, then decide</b> whether the target needs sharpening, star reduction, or neither — that call depends on what showed up once background and stretch are done.
