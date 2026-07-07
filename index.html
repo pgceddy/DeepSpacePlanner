@@ -1895,6 +1895,7 @@ function searchSelect(id) {
   const ts = getPlanTs();
   const c = altAzToRaDec(S.alt, S.az, ts);
   S.ra = c.ra; S.dec = c.dec;
+  updateDisplay()
   scan();
 }
 
