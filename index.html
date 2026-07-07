@@ -1897,6 +1897,7 @@ function searchSelect(id) {
   updateDisplay()
   S.locked = true;
   S.sortBy = 'nearest'
+  document.getElementById('sortbtn').textContent = labels[S.sortBy];
   document.getElementById('lock-btn').classList.add('lockon');
   scan();
 }
