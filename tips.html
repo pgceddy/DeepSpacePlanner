@@ -393,6 +393,9 @@ stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
 <span class="console">stack r_pp_light rej w 2.5 3 -norm=addscale -output_norm</span></code></li>
       <li><b>Background Extraction</b>, being careful with sample placement since nebulosity can extend further than it first appears.
         <code class="cmd"><span class="menu">Image Processing → Background Extraction → RBF, zoom out first to confirm where nebulosity actually ends before placing samples</span></code></li>
+      <li><b>SPCC for color calibration</b> — calibrates off field star photometry, so it still applies even though the nebula itself is the subject. Pick a background reference patch that's genuinely dark sky, not faint nebula glow.
+        <code class="cmd"><span class="menu">Ctrl+Shift+C, or Image Processing → Color Calibration → Spectrophotometric Color Calibration</span>
+<span class="console">spcc</span></code></li>
       <li><b>Stretch with masking</b>: protect the brightest core while pulling up faint outer wisps separately.
         <code class="cmd"><span class="menu">Create a luminance/range mask isolating the bright core, invert it to protect that region, stretch the rest more aggressively</span></code></li>
       <li><b>Star reduction and/or masking for nebula enhancement</b> — the technique you used on Ghost Nebula (VdB 141) applies directly here.
@@ -416,6 +419,9 @@ stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
       <li><b>Background Extraction is critical</b> — large diffuse nebulae are easy to confuse with genuine gradients. Sample generously and check the extracted background model before subtracting.
         <code class="cmd"><span class="menu">Image Processing → Background Extraction → RBF, tick "show background" to inspect the model before applying</span>
 <span class="console">subsky -rbf -samples=30</span></code></li>
+      <li><b>SPCC for color calibration</b> — run this before any saturation/narrowband-style boosts below, so those boosts are pushing from an already-correct color baseline rather than compensating for an uncalibrated one.
+        <code class="cmd"><span class="menu">Ctrl+Shift+C, or Image Processing → Color Calibration → Spectrophotometric Color Calibration</span>
+<span class="console">spcc</span></code></li>
       <li><b>Stretch gently and in multiple passes</b> rather than one aggressive curve — you're trying to reveal faint extended structure without crushing it into flat gray.
         <code class="cmd"><span class="menu">Image Processing → Generalized Hyperbolic Stretch, apply in 2–3 low-strength passes rather than one strong pass</span></code></li>
       <li><b>Consider narrowband-style contrast boosts</b> even from broadband OSC data (e.g. selective saturation on H-alpha-rich regions) if the Seestar's filter and target support it.
@@ -440,6 +446,9 @@ stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
 <span class="console">stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
       <li><b>Minimal background extraction needed</b> — the field around a planetary nebula is usually clean.
         <code class="cmd"><span class="menu">Image Processing → Background Extraction → Polynomial degree 1, light touch only</span></code></li>
+      <li><b>SPCC for color calibration</b> — worth doing even on a small, bright target, since it's calibrating the field stars rather than the shell itself.
+        <code class="cmd"><span class="menu">Ctrl+Shift+C, or Image Processing → Color Calibration → Spectrophotometric Color Calibration</span>
+<span class="console">spcc</span></code></li>
       <li><b>Aggressive but careful stretch on the shell</b>, protecting the central star/core from clipping.
         <code class="cmd"><span class="menu">Mask the central star/core (star mask, inverted), stretch the shell aggressively with GHS while the core stays protected</span></code></li>
       <li><b>Sharpen the shell edge specifically</b> — this is one of the few target types where real sharpening (not just noise reduction) pays off at S50 resolution.
