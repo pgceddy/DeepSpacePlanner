@@ -1890,6 +1890,12 @@ function runSearch(q) {
 function searchSelect(id) {
   closeSearch();
   openDetail(id, 0);
+  const o = CATALOG.find(x => x.id === id);
+  if (!o) return;
+  const ts = getPlanTs();
+  const c = altAzToRaDec(S.alt, S.az, ts);
+  S.ra = c.ra; S.dec = c.dec;
+  scan();
 }
 
 document.getElementById('search-btn').addEventListener('click', openSearch);
