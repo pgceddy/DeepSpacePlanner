@@ -1893,7 +1893,7 @@ function searchSelect(id) {
   const o = CATALOG.find(x => x.id === id);
   if (!o) return;
   const ts = getPlanTs();
-  const c = altAzToRaDec(S.alt, S.az, ts);
+  const c = altAzToRaDec(o.alt, o.az, ts);
   S.ra = c.ra; S.dec = c.dec;
   updateDisplay()
   S.locked = true;
