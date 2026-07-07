@@ -1896,6 +1896,8 @@ function searchSelect(id) {
   const c = altAzToRaDec(S.alt, S.az, ts);
   S.ra = c.ra; S.dec = c.dec;
   updateDisplay()
+  S.locked = true;
+  document.getElementById('lock-btn').classList.add('lockon');
   scan();
 }
 
