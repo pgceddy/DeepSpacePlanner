@@ -1893,7 +1893,7 @@ function searchSelect(id) {
   const o = CATALOG.find(x => x.id === id);
   if (!o) return;
   const ts = getPlanTs();
-  S.ra = o.ra; S.dec = o.dec;
+  S.ra = o.ra; S.dec = o.dec; S.needleDeg = s.ra;
   updateDisplay()
   S.locked = true;
   const labels = { nearest: '⊙ Nearest', brightest: '★ Brightest', best: '▲ Best' };
