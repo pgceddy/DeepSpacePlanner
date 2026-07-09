@@ -170,6 +170,16 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 .rcoord .rc{font-family:var(--mono);font-size:.63rem;color:var(--amber);white-space:nowrap}
 .rcoord .rs{font-family:var(--mono);font-size:.56rem;color:var(--lo)}
 
+/* FOV-fit badge */
+.fitbadge{font-family:var(--mono);font-size:.56rem;letter-spacing:.04em;margin-left:6px;
+          padding:1px 5px;border-radius:3px;white-space:nowrap;display:inline-block}
+.fitbadge.good{color:#2f7d2f;background:rgba(47,125,47,.12)}
+.fitbadge.small{color:#a3590f;background:rgba(163,89,15,.12)}
+.fitbadge.large{color:#b8302f;background:rgba(184,48,47,.12)}
+.fitbadge.unknown{display:none}
+.row.fit-excluded{opacity:.4}
+#fovfitbtn.on{background:var(--amber);border-color:var(--amber);color:#1a1610}
+
 /* Detail sheet */
 #sheet{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:50;display:none;align-items:flex-end}
 #sheet.on{display:flex}
@@ -398,6 +408,15 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
     <input type="range" class="qs" id="magsl" min="6" max="14" value="12" step="0.5">
     <span class="qv" id="magv">≤12.0</span>
   </div>
+  <div class="qr">
+    <span class="ql">Frame</span>
+    <button id="fovfitbtn" onclick="toggleFovFitOnly()"
+            style="font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;
+                   padding:5px 10px;cursor:pointer;border-radius:3px;
+                   background:none;border:1px solid var(--border);color:var(--adim)">
+      Hide poor Seestar fits
+    </button>
+  </div>
 
   <!-- Planning mode bar -->
   <div id="planbar">
@@ -572,6 +591,8 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
             <div class="df"><label>Dec (decimal°)</label><div class="v" id="d-dec2"></div></div>
             <div class="df"><label>Magnitude</label><div class="v" id="d-mag"></div></div>
             <div class="df"><label>Constellation</label><div class="v" id="d-con"></div></div>
+            <div class="df"><label>Apparent Size</label><div class="v" id="d-size"></div></div>
+            <div class="df"><label>Seestar Frame Fit</label><div class="v" id="d-fit"></div></div>
             <div class="df full"><label>Separation from scan center</label><div class="v" id="d-sep"></div></div>
         </div>
         <button class="dclose" id="dclose">Close</button>
@@ -582,50 +603,71 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 'use strict';
 
 // ── Catalog ────────────────────────────────────────────
+// size = apparent major axis in arcmin (approximate published values), used for Seestar FOV fit
 const MESSIER = [
-  {id:"M1",name:"Crab Nebula",type:"SNR",ra:83.8221,dec:22.0145,mag:8.4,con:"Tau",desc:"Supernova remnant from 1054 AD, energized by a central pulsar spinning 30 times/second"},
-  {id:"M2",name:"M2",type:"GC",ra:323.3625,dec:-0.8233,mag:6.5,con:"Aqr",desc:"Rich globular cluster, one of the largest known at ~175 light years in diameter"},
-  {id:"M3",name:"M3",type:"GC",ra:205.5483,dec:28.3775,mag:6.2,con:"CVn",desc:"One of the finest globular clusters in the northern sky, containing ~500,000 stars"},
-  {id:"M4",name:"M4",type:"GC",ra:245.8967,dec:-26.5258,mag:5.6,con:"Sco",desc:"Nearest globular cluster to Earth at ~7,200 light years; contains ancient white dwarfs"},
-  {id:"M5",name:"M5",type:"GC",ra:229.6383,dec:2.0808,mag:5.6,con:"Ser",desc:"One of the oldest globular clusters at ~13 billion years old"},
-  {id:"M6",name:"Butterfly Cluster",type:"OC",ra:265.0833,dec:-32.2167,mag:4.2,con:"Sco",desc:"Open cluster whose brightest stars form the shape of a butterfly"},
-  {id:"M7",name:"Ptolemy Cluster",type:"OC",ra:268.4625,dec:-34.7933,mag:3.3,con:"Sco",desc:"Naked-eye open cluster catalogued by Ptolemy around 130 AD"},
-  {id:"M8",name:"Lagoon Nebula",type:"EN",ra:270.9208,dec:-24.3833,mag:6.0,con:"Sgr",desc:"Large bright emission nebula with active star formation; the lagoon is a dark dust lane"},
-  {id:"M11",name:"Wild Duck Cluster",type:"OC",ra:282.7667,dec:-6.2667,mag:5.8,con:"Sct",desc:"One of the richest and most compact open clusters known, with ~2,900 stars"},
-  {id:"M13",name:"Hercules Cluster",type:"GC",ra:250.4233,dec:36.4608,mag:5.8,con:"Her",desc:"The Great Globular Cluster — showpiece of the northern sky with ~300,000 stars"},
-  {id:"M15",name:"M15",type:"GC",ra:322.4933,dec:12.1675,mag:6.2,con:"Peg",desc:"Extremely dense core — one of the most concentrated globular clusters known"},
-  {id:"M16",name:"Eagle Nebula",type:"EN",ra:274.7000,dec:-13.8067,mag:6.4,con:"Ser",desc:"Contains the iconic Pillars of Creation, towering columns of gas and dust"},
-  {id:"M17",name:"Omega Nebula",type:"EN",ra:275.1958,dec:-16.1758,mag:6.0,con:"Sgr",desc:"Also called Swan Nebula — one of the brightest and most massive star-forming regions"},
-  {id:"M20",name:"Trifid Nebula",type:"EN",ra:270.6167,dec:-23.0333,mag:6.3,con:"Sgr",desc:"Divided into three lobes by dark dust lanes; contains emission, reflection, and dark nebulae"},
-  {id:"M22",name:"Sgr Cluster",type:"GC",ra:279.1000,dec:-23.9042,mag:5.1,con:"Sgr",desc:"One of the nearest and brightest globular clusters, visible to the naked eye"},
-  {id:"M27",name:"Dumbbell Nebula",type:"PN",ra:299.9017,dec:22.7208,mag:7.4,con:"Vul",desc:"First planetary nebula ever discovered (Messier, 1764) — the largest in apparent size"},
-  {id:"M31",name:"Andromeda Galaxy",type:"Gx",ra:10.6850,dec:41.2692,mag:3.4,con:"And",desc:"Nearest large spiral galaxy, 2.5 million light years away, visible to naked eye"},
-  {id:"M32",name:"M32",type:"Gx",ra:10.6742,dec:40.8517,mag:8.7,con:"And",desc:"Compact dwarf elliptical companion to the Andromeda Galaxy"},
-  {id:"M33",name:"Triangulum Galaxy",type:"Gx",ra:23.4617,dec:30.6600,mag:5.7,con:"Tri",desc:"Third largest Local Group galaxy; one of the most distant naked-eye objects"},
-  {id:"M35",name:"M35",type:"OC",ra:92.2667,dec:24.3333,mag:5.1,con:"Gem",desc:"Rich open cluster with ~500 stars; background cluster NGC 2158 visible in telescopes"},
-  {id:"M42",name:"Orion Nebula",type:"EN",ra:83.8221,dec:-5.3911,mag:4.0,con:"Ori",desc:"Great Nebula in Orion — closest stellar nursery at 1,344 light years, home to Trapezium"},
-  {id:"M44",name:"Beehive Cluster",type:"OC",ra:130.1000,dec:19.6667,mag:3.1,con:"Cnc",desc:"One of the nearest open clusters at 577 light years, containing ~1,000 stars"},
-  {id:"M45",name:"Pleiades",type:"OC",ra:56.8500,dec:24.1167,mag:1.6,con:"Tau",desc:"The Seven Sisters — nearest Messier object at 444 light years, wrapped in reflection nebulosity"},
-  {id:"M51",name:"Whirlpool Galaxy",type:"Gx",ra:202.4696,dec:47.1952,mag:8.4,con:"CVn",desc:"Classic interacting spiral galaxy with companion NGC 5195 distorting its structure"},
-  {id:"M57",name:"Ring Nebula",type:"PN",ra:283.3958,dec:33.0292,mag:8.8,con:"Lyr",desc:"Archetypal ring-shaped planetary nebula — the expelled outer layers of a dying star"},
-  {id:"M63",name:"Sunflower Galaxy",type:"Gx",ra:198.9558,dec:42.0292,mag:8.6,con:"CVn",desc:"Spiral galaxy with a prominent multi-arm dust lane pattern resembling a sunflower"},
-  {id:"M64",name:"Black Eye Galaxy",type:"Gx",ra:194.1825,dec:21.6825,mag:8.5,con:"Com",desc:"Striking dark dust absorption band creates the eye-like appearance"},
-  {id:"M65",name:"M65",type:"Gx",ra:169.7325,dec:13.0925,mag:9.3,con:"Leo",desc:"Spiral galaxy, one of the Leo Triplet; shows slight asymmetry from past interactions"},
-  {id:"M66",name:"M66",type:"Gx",ra:170.0625,dec:12.9917,mag:8.9,con:"Leo",desc:"Largest of the Leo Triplet; distorted spiral arms from gravitational interaction"},
-  {id:"M74",name:"M74",type:"Gx",ra:24.1742,dec:15.7833,mag:9.4,con:"Psc",desc:"Face-on grand design spiral — low surface brightness makes it a challenging target"},
-  {id:"M78",name:"M78",type:"RN",ra:86.6833,dec:0.0500,mag:8.3,con:"Ori",desc:"Brightest reflection nebula in the sky; two B-type stars illuminate the surrounding dust"},
-  {id:"M81",name:"Bode's Galaxy",type:"Gx",ra:148.8883,dec:69.0653,mag:6.9,con:"UMa",desc:"Bright grand design spiral, gravitationally paired with starburst galaxy M82"},
-  {id:"M82",name:"Cigar Galaxy",type:"Gx",ra:148.9692,dec:69.6797,mag:8.4,con:"UMa",desc:"Starburst galaxy with dramatic polar outflows of gas visible in H-alpha"},
-  {id:"M83",name:"Southern Pinwheel",type:"Gx",ra:204.2538,dec:-29.8658,mag:7.5,con:"Hya",desc:"One of the nearest and brightest barred spirals; high supernova rate"},
-  {id:"M87",name:"Virgo A",type:"Gx",ra:187.7058,dec:12.3911,mag:8.6,con:"Vir",desc:"Giant elliptical with famous relativistic jet — supermassive black hole imaged in 2019"},
-  {id:"M92",name:"M92",type:"GC",ra:259.2808,dec:43.1358,mag:6.4,con:"Her",desc:"Bright globular cluster in Hercules, often overlooked near the more famous M13"},
-  {id:"M94",name:"Cat's Eye Galaxy",type:"Gx",ra:192.7208,dec:41.1200,mag:8.2,con:"CVn",desc:"Compact spiral with unusually bright starburst inner ring; also called Croc's Eye"},
-  {id:"M97",name:"Owl Nebula",type:"PN",ra:168.6992,dec:55.0192,mag:9.9,con:"UMa",desc:"Large faint planetary nebula; two dark circular patches resemble owl eyes"},
-  {id:"M101",name:"Pinwheel Galaxy",type:"Gx",ra:210.8025,dec:54.3492,mag:7.9,con:"UMa",desc:"Large nearly face-on spiral with asymmetric arms due to gravitational interactions"},
-  {id:"M104",name:"Sombrero Galaxy",type:"Gx",ra:189.9975,dec:-11.6231,mag:8.0,con:"Vir",desc:"Edge-on spiral with massive central bulge and prominent dark dust lane; resembles a sombrero"},
-  {id:"M106",name:"M106",type:"Gx",ra:184.7400,dec:47.3042,mag:8.4,con:"CVn",desc:"Spiral galaxy with anomalous water maser jets and active nucleus"},
-  {id:"M110",name:"M110",type:"Gx",ra:10.0917,dec:41.6850,mag:8.5,con:"And",desc:"Dwarf elliptical satellite of Andromeda; the last object added to the Messier catalog"},
+  {id:"M1",name:"Crab Nebula",type:"SNR",ra:83.8221,dec:22.0145,mag:8.4,con:"Tau",desc:"Supernova remnant from 1054 AD, energized by a central pulsar spinning 30 times/second",size:6,sizeMin:4},
+  {id:"M2",name:"M2",type:"GC",ra:323.3625,dec:-0.8233,mag:6.5,con:"Aqr",desc:"Rich globular cluster, one of the largest known at ~175 light years in diameter",size:16,sizeMin:16},
+  {id:"M3",name:"M3",type:"GC",ra:205.5483,dec:28.3775,mag:6.2,con:"CVn",desc:"One of the finest globular clusters in the northern sky, containing ~500,000 stars",size:18,sizeMin:18},
+  {id:"M4",name:"M4",type:"GC",ra:245.8967,dec:-26.5258,mag:5.6,con:"Sco",desc:"Nearest globular cluster to Earth at ~7,200 light years; contains ancient white dwarfs",size:36,sizeMin:36},
+  {id:"M5",name:"M5",type:"GC",ra:229.6383,dec:2.0808,mag:5.6,con:"Ser",desc:"One of the oldest globular clusters at ~13 billion years old",size:23,sizeMin:23},
+  {id:"M6",name:"Butterfly Cluster",type:"OC",ra:265.0833,dec:-32.2167,mag:4.2,con:"Sco",desc:"Open cluster whose brightest stars form the shape of a butterfly",size:25,sizeMin:25},
+  {id:"M7",name:"Ptolemy Cluster",type:"OC",ra:268.4625,dec:-34.7933,mag:3.3,con:"Sco",desc:"Naked-eye open cluster catalogued by Ptolemy around 130 AD",size:80,sizeMin:80},
+  {id:"M8",name:"Lagoon Nebula",type:"EN",ra:270.9208,dec:-24.3833,mag:6.0,con:"Sgr",desc:"Large bright emission nebula with active star formation; the lagoon is a dark dust lane",size:90,sizeMin:40},
+  {id:"M11",name:"Wild Duck Cluster",type:"OC",ra:282.7667,dec:-6.2667,mag:5.8,con:"Sct",desc:"One of the richest and most compact open clusters known, with ~2,900 stars",size:14,sizeMin:14},
+  {id:"M13",name:"Hercules Cluster",type:"GC",ra:250.4233,dec:36.4608,mag:5.8,con:"Her",desc:"The Great Globular Cluster — showpiece of the northern sky with ~300,000 stars",size:20,sizeMin:20},
+  {id:"M15",name:"M15",type:"GC",ra:322.4933,dec:12.1675,mag:6.2,con:"Peg",desc:"Extremely dense core — one of the most concentrated globular clusters known",size:18,sizeMin:18},
+  {id:"M16",name:"Eagle Nebula",type:"EN",ra:274.7000,dec:-13.8067,mag:6.4,con:"Ser",desc:"Contains the iconic Pillars of Creation, towering columns of gas and dust",size:35,sizeMin:28},
+  {id:"M17",name:"Omega Nebula",type:"EN",ra:275.1958,dec:-16.1758,mag:6.0,con:"Sgr",desc:"Also called Swan Nebula — one of the brightest and most massive star-forming regions",size:11,sizeMin:11},
+  {id:"M20",name:"Trifid Nebula",type:"EN",ra:270.6167,dec:-23.0333,mag:6.3,con:"Sgr",desc:"Divided into three lobes by dark dust lanes; contains emission, reflection, and dark nebulae",size:28,sizeMin:28},
+  {id:"M22",name:"Sgr Cluster",type:"GC",ra:279.1000,dec:-23.9042,mag:5.1,con:"Sgr",desc:"One of the nearest and brightest globular clusters, visible to the naked eye",size:24,sizeMin:24},
+  {id:"M27",name:"Dumbbell Nebula",type:"PN",ra:299.9017,dec:22.7208,mag:7.4,con:"Vul",desc:"First planetary nebula ever discovered (Messier, 1764) — the largest in apparent size",size:8,sizeMin:5.7},
+  {id:"M31",name:"Andromeda Galaxy",type:"Gx",ra:10.6850,dec:41.2692,mag:3.4,con:"And",desc:"Nearest large spiral galaxy, 2.5 million light years away, visible to naked eye",size:190,sizeMin:60},
+  {id:"M32",name:"M32",type:"Gx",ra:10.6742,dec:40.8517,mag:8.7,con:"And",desc:"Compact dwarf elliptical companion to the Andromeda Galaxy",size:8,sizeMin:6},
+  {id:"M33",name:"Triangulum Galaxy",type:"Gx",ra:23.4617,dec:30.6600,mag:5.7,con:"Tri",desc:"Third largest Local Group galaxy; one of the most distant naked-eye objects",size:61,sizeMin:42},
+  {id:"M35",name:"M35",type:"OC",ra:92.2667,dec:24.3333,mag:5.1,con:"Gem",desc:"Rich open cluster with ~500 stars; background cluster NGC 2158 visible in telescopes",size:28,sizeMin:28},
+  {id:"M42",name:"Orion Nebula",type:"EN",ra:83.8221,dec:-5.3911,mag:4.0,con:"Ori",desc:"Great Nebula in Orion — closest stellar nursery at 1,344 light years, home to Trapezium",size:85,sizeMin:60},
+  {id:"M44",name:"Beehive Cluster",type:"OC",ra:130.1000,dec:19.6667,mag:3.1,con:"Cnc",desc:"One of the nearest open clusters at 577 light years, containing ~1,000 stars",size:95,sizeMin:95},
+  {id:"M45",name:"Pleiades",type:"OC",ra:56.8500,dec:24.1167,mag:1.6,con:"Tau",desc:"The Seven Sisters — nearest Messier object at 444 light years, wrapped in reflection nebulosity",size:110,sizeMin:110},
+  {id:"M51",name:"Whirlpool Galaxy",type:"Gx",ra:202.4696,dec:47.1952,mag:8.4,con:"CVn",desc:"Classic interacting spiral galaxy with companion NGC 5195 distorting its structure",size:11,sizeMin:7},
+  {id:"M57",name:"Ring Nebula",type:"PN",ra:283.3958,dec:33.0292,mag:8.8,con:"Lyr",desc:"Archetypal ring-shaped planetary nebula — the expelled outer layers of a dying star",size:1.4,sizeMin:1},
+  {id:"M63",name:"Sunflower Galaxy",type:"Gx",ra:198.9558,dec:42.0292,mag:8.6,con:"CVn",desc:"Spiral galaxy with a prominent multi-arm dust lane pattern resembling a sunflower",size:10,sizeMin:6},
+  {id:"M64",name:"Black Eye Galaxy",type:"Gx",ra:194.1825,dec:21.6825,mag:8.5,con:"Com",desc:"Striking dark dust absorption band creates the eye-like appearance",size:9.3,sizeMin:5.4},
+  {id:"M65",name:"M65",type:"Gx",ra:169.7325,dec:13.0925,mag:9.3,con:"Leo",desc:"Spiral galaxy, one of the Leo Triplet; shows slight asymmetry from past interactions",size:9.8,sizeMin:2.9},
+  {id:"M66",name:"M66",type:"Gx",ra:170.0625,dec:12.9917,mag:8.9,con:"Leo",desc:"Largest of the Leo Triplet; distorted spiral arms from gravitational interaction",size:9.1,sizeMin:4.2},
+  {id:"M74",name:"M74",type:"Gx",ra:24.1742,dec:15.7833,mag:9.4,con:"Psc",desc:"Face-on grand design spiral — low surface brightness makes it a challenging target",size:10.2,sizeMin:9.5},
+  {id:"M78",name:"M78",type:"RN",ra:86.6833,dec:0.0500,mag:8.3,con:"Ori",desc:"Brightest reflection nebula in the sky; two B-type stars illuminate the surrounding dust",size:8,sizeMin:6},
+  {id:"M81",name:"Bode's Galaxy",type:"Gx",ra:148.8883,dec:69.0653,mag:6.9,con:"UMa",desc:"Bright grand design spiral, gravitationally paired with starburst galaxy M82",size:26.9,sizeMin:14.1},
+  {id:"M82",name:"Cigar Galaxy",type:"Gx",ra:148.9692,dec:69.6797,mag:8.4,con:"UMa",desc:"Starburst galaxy with dramatic polar outflows of gas visible in H-alpha",size:11.2,sizeMin:4.3},
+  {id:"M83",name:"Southern Pinwheel",type:"Gx",ra:204.2538,dec:-29.8658,mag:7.5,con:"Hya",desc:"One of the nearest and brightest barred spirals; high supernova rate",size:12.9,sizeMin:11.5},
+  {id:"M87",name:"Virgo A",type:"Gx",ra:187.7058,dec:12.3911,mag:8.6,con:"Vir",desc:"Giant elliptical with famous relativistic jet — supermassive black hole imaged in 2019",size:8.3,sizeMin:6.6},
+  {id:"M92",name:"M92",type:"GC",ra:259.2808,dec:43.1358,mag:6.4,con:"Her",desc:"Bright globular cluster in Hercules, often overlooked near the more famous M13",size:14,sizeMin:14},
+  {id:"M94",name:"Cat's Eye Galaxy",type:"Gx",ra:192.7208,dec:41.1200,mag:8.2,con:"CVn",desc:"Compact spiral with unusually bright starburst inner ring; also called Croc's Eye",size:11.2,sizeMin:9.1},
+  {id:"M97",name:"Owl Nebula",type:"PN",ra:168.6992,dec:55.0192,mag:9.9,con:"UMa",desc:"Large faint planetary nebula; two dark circular patches resemble owl eyes",size:3.4,sizeMin:3.3},
+  {id:"M101",name:"Pinwheel Galaxy",type:"Gx",ra:210.8025,dec:54.3492,mag:7.9,con:"UMa",desc:"Large nearly face-on spiral with asymmetric arms due to gravitational interactions",size:28.8,sizeMin:26.9},
+  {id:"M104",name:"Sombrero Galaxy",type:"Gx",ra:189.9975,dec:-11.6231,mag:8.0,con:"Vir",desc:"Edge-on spiral with massive central bulge and prominent dark dust lane; resembles a sombrero",size:8.7,sizeMin:3.5},
+  {id:"M106",name:"M106",type:"Gx",ra:184.7400,dec:47.3042,mag:8.4,con:"CVn",desc:"Spiral galaxy with anomalous water maser jets and active nucleus",size:18.6,sizeMin:7.2},
+  {id:"M110",name:"M110",type:"Gx",ra:10.0917,dec:41.6850,mag:8.5,con:"And",desc:"Dwarf elliptical satellite of Andromeda; the last object added to the Messier catalog",size:21.9,sizeMin:11},
 ];
+
+// Seestar S50 native imaging field of view, in arcmin (portrait: short x long edge)
+// Source: 1920x1080 IMX462 sensor at 2.4"/px ≈ 43' x 76'
+const SEESTAR_FOV = { w: 43, h: 76 };
+
+// Classify how well an object's apparent size fits the Seestar S50 frame.
+// Uses the frame's short edge as the limiting dimension since that's what
+// constrains framing regardless of object orientation.
+function fovFit(o) {
+  const size = o.size;
+  if (size == null) return { cls: 'unknown', label: 'Size unknown', icon: '·' };
+  const ratio = size / SEESTAR_FOV.w;
+  if (ratio > 1.4) {
+    return { cls: 'large', label: `Won't fully fit (${size}′) — try Mosaic mode`, icon: '⬈' };
+  }
+  if (ratio < 0.15) {
+    return { cls: 'small', label: `Small in-frame (${size}′) — plan extra integration`, icon: '⬥' };
+  }
+  return { cls: 'good', label: `Good frame fit (${size}′)`, icon: '✓' };
+}
 
 const TICON = {GC:"✨",OC:"⭐",Gx:"🌀",EN:"🟥",PN:"🔵",RN:"🔷",SNR:"💥",SC:"☁️"};
 const TNAME = {GC:"Globular Cluster",OC:"Open Cluster",Gx:"Galaxy",EN:"Emission Nebula",
@@ -942,7 +984,7 @@ const NGC_DATA = [
 
 
 // Define the ADQL Query joining basic properties with V-band fluxes
-const adqlQuery = "SELECT name, raj2000, dej2000, obj_type, mag_v, mag_b, constellation, comname, messier_nr FROM openngc.data WHERE obj_type NOT IN ('*','**','*Ass','DrkN','Nova','NonEx','Dup','Other') AND raj2000 IS NOT NULL AND dej2000 IS NOT NULL"
+const adqlQuery = "SELECT name, raj2000, dej2000, obj_type, mag_v, mag_b, constellation, comname, messier_nr, majaxis, minaxis FROM openngc.data WHERE obj_type NOT IN ('*','**','*Ass','DrkN','Nova','NonEx','Dup','Other') AND raj2000 IS NOT NULL AND dej2000 IS NOT NULL"
 
     // 2. Prepare parameters for the POST request
 const p = new URLSearchParams();
@@ -972,7 +1014,7 @@ function loadNGC() {
     for (const [id, ra, dec, mag, type, nameRaw] of NGC_DATA) {
         if (have.has(id)) continue;
         const name = nameRaw || id;
-        CATALOG.push({ id, name, type, ra, dec, mag, con: '', desc: '' });
+        CATALOG.push({ id, name, type, ra, dec, mag, con: '', desc: '', size: null, sizeMin: null });
         have.add(id);
         added++;
     }
@@ -1011,6 +1053,8 @@ async function loadCatalog() {
         const iCon = cols.indexOf('constellation');
         const iCom = cols.indexOf('comname');
         const iMess = cols.indexOf('messier_nr');
+        const iMajAx = cols.indexOf('majaxis');
+        const iMinAx = cols.indexOf('minaxis');
 
         const existing = new Set(CATALOG.map(o => o.id));
         // Also build a map so we can patch existing entries with better data
@@ -1028,6 +1072,10 @@ async function loadCatalog() {
             const type = OPENNGC_TYPES[row[iType]] || 'Gx';
             const mag = safeMag(row[iMagV], row[iMagB]);
             const con = row[iCon] || '';
+            const majAx = parseFloat(row[iMajAx]); // arcmin
+            const minAx = parseFloat(row[iMinAx]); // arcmin
+            const size  = isNaN(majAx) ? null : majAx;
+            const sizeMin = isNaN(minAx) ? null : minAx;
 
             // Build best display name: common name > Messier > NGC/IC id
             const messier = row[iMess] ? `M${row[iMess]}` : '';
@@ -1040,11 +1088,12 @@ async function loadCatalog() {
                 if (o.mag === 99.0 && mag < 99.0) { o.mag = mag; patched++; }
                 if (!o.con && con) o.con = con;
                 if (o.name === id && name !== id) o.name = name; // upgrade to common name
+                if (o.size == null && size != null) { o.size = size; o.sizeMin = sizeMin; }
             } else {
                 if (mag === 99.0 || mag >= 13.0) {
                     continue;
                 }
-                CATALOG.push({ id, name, type, ra, dec, mag, con, desc: '' });
+                CATALOG.push({ id, name, type, ra, dec, mag, con, desc: '', size, sizeMin });
                 existing.add(id);
                 byId[id] = CATALOG[CATALOG.length - 1];
                 gAdded++;
@@ -1107,7 +1156,15 @@ const S = {
   planning:false,
   planSlot:22,   // default slot index → 10:00 PM (slot 0 = 17:00)
   sortBy:'best',  // 'nearest' | 'brightest' | 'best'
+  fovFitOnly:false, // when true, hide objects that don't fit the Seestar frame well
 };
+
+function toggleFovFitOnly() {
+  S.fovFitOnly = !S.fovFitOnly;
+  const btn = document.getElementById('fovfitbtn');
+  if (btn) btn.classList.toggle('on', S.fovFitOnly);
+  renderList();
+}
 
 function toggleSort() {
     // Cycle: best -> brightest -> nearest → best
@@ -1574,23 +1631,38 @@ function renderList() {
   const epWrap = document.getElementById('eyepiece-wrap');
   if (!S.results.length) {
     empty.style.display='flex'; hdr.style.display='none'; items.innerHTML='';
+    const p = empty.querySelector('p');
+    if (p) p.innerHTML = 'Point iPad at the sky<br>and tap <strong style="color:var(--amber)">Scan</strong>';
     epWrap.classList.remove('on');
     dot.className='hdot'+(S.live?' live':'');
     return;
   }
+  const shown = S.fovFitOnly
+    ? S.results.filter(o => { const f = fovFit(o); return f.cls==='good' || f.cls==='unknown'; })
+    : S.results;
+
+  if (!shown.length) {
+    empty.style.display='flex'; hdr.style.display='none'; items.innerHTML='';
+    empty.querySelector('p') && (empty.querySelector('p').textContent = 'No objects fit the frame well from this scan. Try widening FOV or turning off the frame-fit filter.');
+    epWrap.classList.remove('on');
+    dot.className='hdot'+(S.live?' live':'');
+    return;
+  }
+
   empty.style.display='none'; hdr.style.display='flex'; dot.className='hdot found';
   epWrap.classList.add('on');
   drawEyepiece();
   document.getElementById('lcount').textContent =
-    `${S.results.length} object${S.results.length!==1?'s':''} in view`;
+    `${shown.length} object${shown.length!==1?'s':''} in view${S.fovFitOnly && shown.length!==S.results.length ? ` (${S.results.length-shown.length} hidden — poor frame fit)` : ''}`;
   document.getElementById('lmeta').textContent = `FOV ${S.fov}° · mag ≤${S.mag.toFixed(1)}`;
-  items.innerHTML = S.results.map(o=>{
+  items.innerHTML = shown.map(o=>{
     const sep = angSep(o.ra,o.dec,S.scanRA,S.scanDec);
+    const fit = fovFit(o);
     return `<div class="row" onclick="openDetail('${o.id.replace(/'/g,"\\'")}',${sep.toFixed(3)})">
       <div class="rico">${TICON[o.type]||'🔭'}</div>
       <div class="rmeta">
         <div class="rname">${o.name}${o.id!==o.name?`<span>${o.id}</span>`:''}${getLog(o.id).length?`<span style="color:#2f7d2f;margin-left:6px">✓</span>`:''}</div>
-        <div class="rsub">${TNAME[o.type]||o.type}${o.con?' · '+o.con:''}</div>
+        <div class="rsub">${TNAME[o.type]||o.type}${o.con?' · '+o.con:''}<span class="fitbadge ${fit.cls}">${fit.icon} ${fit.cls==='good'?'fits frame':fit.cls==='small'?'small':fit.cls==='large'?'too large':''}</span></div>
       </div>
       <div class="rcoord">
         <span class="rc">${fRA(o.ra)}</span>
@@ -1751,6 +1823,14 @@ function seestarNotes(o) {
     notes.push('Point the Seestar at the object and let it integrate for at least 30 minutes.');
     notes.push('More integration time always improves the result — stack multiple sessions if possible.');
   }
+
+  const fit = fovFit(o);
+  if (fit.cls === 'small') {
+    notes.push(`At ${o.size}′ across, this object will occupy a small part of the Seestar's frame — expect fine detail to need well above average integration, and consider a tighter crop when processing.`);
+  } else if (fit.cls === 'large') {
+    notes.push(`At ${o.size}′ across, this won't fully fit in one frame — use Mosaic mode, or expect to crop tightly on a sub-section.`);
+  }
+
   return notes.join(' ');
 }
 
@@ -1973,6 +2053,15 @@ function openDetail(id, sep) {
   document.getElementById('d-dec2').textContent = o.dec.toFixed(4)+'°';
   document.getElementById('d-mag').textContent  = o.mag === 99.0 ? '-' : o.mag.toFixed(1);
   document.getElementById('d-con').textContent  = o.con||'—';
+  document.getElementById('d-size').textContent = o.size != null
+    ? `${o.size}′${o.sizeMin!=null && o.sizeMin!==o.size ? ' × '+o.sizeMin+'′' : ''}`
+    : 'Unknown';
+  {
+    const fit = fovFit(o);
+    const fitEl = document.getElementById('d-fit');
+    fitEl.textContent = fit.cls==='unknown' ? 'Unknown (no size data)' : fit.label;
+    fitEl.style.color = fit.cls==='good' ? '#2f7d2f' : fit.cls==='small' ? '#a3590f' : fit.cls==='large' ? '#b8302f' : '';
+  }
   document.getElementById('d-sep').textContent  = sep.toFixed(3)+'° from scan center';
 
   // Visibility — computed locally, instant
