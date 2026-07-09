@@ -669,7 +669,20 @@ function fovFit(o) {
   return { cls: 'good', label: `Good frame fit (${size}′)`, icon: '✓' };
 }
 
-const TICON = {GC:"✨",OC:"⭐",Gx:"🌀",EN:"🟥",PN:"🔵",RN:"🔷",SNR:"💥",SC:"☁️"};
+function fovFitScore(o) {
+    const size = o.size;
+    if (size == null) return 0;
+    const ratio = size / SEESTAR_FOV.w;
+    if (ratio > 1.4) {
+        return 2;
+    }
+    if (ratio < 0.15) {
+        return 1;
+    }
+    return 3;
+}
+
+const TICON = { GC: "✨", OC: "⭐", Gx: "🌀", EN: "🟥", PN: "🔵", RN: "🔷", SNR: "💥", SC: "☁️" };
 const TNAME = {GC:"Globular Cluster",OC:"Open Cluster",Gx:"Galaxy",EN:"Emission Nebula",
                PN:"Planetary Nebula",RN:"Reflection Nebula",SNR:"Supernova Remnant",SC:"Star Cloud"};
 
@@ -1188,10 +1201,12 @@ function toggleSort() {
                 // Combined score: normalize altitude (0-90) and brightness (mag 0-15)
                 // Higher altitude = better, lower mag = brighter = better
                 // best: 70% altitude, 30% brightness, objects below 15° scored last
+                const sizeA = fovFitScore(a);
+                const sizeB = fovFitScore(b);
                 const altA = objectAltAtTime(a.ra, a.dec, ts);
                 const altB = objectAltAtTime(b.ra, b.dec, ts);
-                const scoreA = altA < 15 ? -999 : (altA / 90) * 0.7 - (Math.min(a.mag, 15) / 15) * 0.3;
-                const scoreB = altB < 15 ? -999 : (altB / 90) * 0.7 - (Math.min(b.mag, 15) / 15) * 0.3;
+                const scoreA = altA < 15 ? -999 : (altA / 90) * 0.5 - sizeA * 0.3 - (Math.min(a.mag, 15) / 15) * 0.2;
+                const scoreB = altB < 15 ? -999 : (altB / 90) * 0.5 - sizeB * 0.3 - (Math.min(b.mag, 15) / 15) * 0.2;
                 return scoreB - scoreA;
             }
         });
