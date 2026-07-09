@@ -984,7 +984,7 @@ const NGC_DATA = [
 
 
 // Define the ADQL Query joining basic properties with V-band fluxes
-const adqlQuery = "SELECT name, raj2000, dej2000, obj_type, mag_v, mag_b, constellation, comname, messier_nr, majaxis, minaxis FROM openngc.data WHERE obj_type NOT IN ('*','**','*Ass','DrkN','Nova','NonEx','Dup','Other') AND raj2000 IS NOT NULL AND dej2000 IS NOT NULL"
+const adqlQuery = "SELECT name, raj2000, dej2000, obj_type, mag_v, mag_b, constellation, comname, messier_nr, maj_ax_deg, min_ax_deg FROM openngc.data WHERE obj_type NOT IN ('*','**','*Ass','DrkN','Nova','NonEx','Dup','Other') AND raj2000 IS NOT NULL AND dej2000 IS NOT NULL"
 
     // 2. Prepare parameters for the POST request
 const p = new URLSearchParams();
@@ -1053,8 +1053,8 @@ async function loadCatalog() {
         const iCon = cols.indexOf('constellation');
         const iCom = cols.indexOf('comname');
         const iMess = cols.indexOf('messier_nr');
-        const iMajAx = cols.indexOf('majaxis');
-        const iMinAx = cols.indexOf('minaxis');
+        const iMajAx = cols.indexOf('maj_ax_deg');
+        const iMinAx = cols.indexOf('min_ax_deg');
 
         const existing = new Set(CATALOG.map(o => o.id));
         // Also build a map so we can patch existing entries with better data
@@ -2304,7 +2304,7 @@ document.getElementById('timesl').addEventListener('input', e=>{
 
 //Tips sheet 
 function getProcessingTipKey(obj) {
-    const maj = obj.majAxis || 0; // arcmin
+    const maj = obj.maj_ax_deg || 0; // arcmin
     const mag = obj.mag ?? 99;
     const type = obj.type || '';
 
