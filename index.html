@@ -671,9 +671,8 @@ function fovFit(o) {
 
 function fovFitScore(o) {
     const size = o.size;
-    if (size == null) return 0;
-    const ratio = size / SEESTAR_FOV.w;
-    return ratio;
+    if (size == null) return 1;
+    return size;
 }
 
 const TICON = { GC: "✨", OC: "⭐", Gx: "🌀", EN: "🟥", PN: "🔵", RN: "🔷", SNR: "💥", SC: "☁️" };
@@ -1622,8 +1621,10 @@ function scan() {
                 // best: 70% altitude, 30% brightness, objects below 15° scored last
                 const altA = objectAltAtTime(a.ra, a.dec, ts);
                 const altB = objectAltAtTime(b.ra, b.dec, ts);
-                const scoreA = altA < 15 ? -999 : (altA / 90) * 0.7 - (Math.min(a.mag, 15) / 15) * 0.3;
-                const scoreB = altB < 15 ? -999 : (altB / 90) * 0.7 - (Math.min(b.mag, 15) / 15) * 0.3;
+                const sizeA = fovFitScore(a);
+                const sizeB = fovFitScore(b);
+                const scoreA = altA < 15 ? -999 : ((altA / 90) * 0.7 - (Math.min(a.mag, 15) / 15) * 0.3) * sizeA;
+                const scoreB = altB < 15 ? -999 : ((altB / 90) * 0.7 - (Math.min(b.mag, 15) / 15) * 0.3) * sizeB;
                 return scoreB - scoreA;
             }
             return angSep(a.ra, a.dec, S.ra, S.dec) - angSep(b.ra, b.dec, S.ra, S.dec);
