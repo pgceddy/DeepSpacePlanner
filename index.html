@@ -669,10 +669,28 @@ function fovFit(o) {
   return { cls: 'good', label: `Good frame fit (${size}′)`, icon: '✓' };
 }
 
-function fovFitScore(o) {
-    const size = o.size;
-    if (size == null) return 1;
-    return size;
+// Continuous 0–1 "how well does this fill the frame" score for the Best sort.
+// Peaks at a ratio of ~0.45 (fills a comfortable portion of the short edge without
+// overflowing), decays smoothly toward 0 for objects that are tiny or too large.
+// Unknown-size objects get a neutral 0.6 so missing data doesn't tank their ranking.
+function sizeFitScore(o) {
+  if (o.size == null) return 0.6;
+  const ratio = o.size / SEESTAR_FOV.w;
+  const logRatio = Math.log(Math.max(ratio, 0.01));
+  const logIdeal = Math.log(0.45);
+  const sigma = 1.1; // wide-ish tolerance in log-space
+  return Math.exp(-((logRatio - logIdeal) ** 2) / (2 * sigma * sigma));
+}
+
+// Shared "Best" ranking score: altitude (favor higher in sky), brightness, and frame fit.
+// Objects below 15° altitude are always ranked last regardless of other factors.
+function bestScore(o, ts) {
+  const alt = objectAltAtTime(o.ra, o.dec, ts);
+  if (alt < 15) return -999;
+  const altScore  = alt / 90;
+  const magScore  = 1 - Math.min(o.mag, 15) / 15;
+  const sizeScore = sizeFitScore(o);
+  return altScore * 0.5 + magScore * 0.25 + sizeScore * 0.25;
 }
 
 const TICON = { GC: "✨", OC: "⭐", Gx: "🌀", EN: "🟥", PN: "🔵", RN: "🔷", SNR: "💥", SC: "☁️" };
@@ -1218,16 +1236,8 @@ function toggleSort() {
             // best: highest altitude at plan/current time
             // return objectAltAtTime(b.ra, b.dec, ts) - objectAltAtTime(a.ra, a.dec, ts);
             if (S.sortBy === 'best') {
-                // Combined score: normalize altitude (0-90) and brightness (mag 0-15)
-                // Higher altitude = better, lower mag = brighter = better
-                // best: 70% altitude, 30% brightness, objects below 15° scored last
-                const sizeA = fovFitScore(a);
-                const sizeB = fovFitScore(b);
-                const altA = objectAltAtTime(a.ra, a.dec, ts);
-                const altB = objectAltAtTime(b.ra, b.dec, ts);
-                const scoreA = altA < 15 ? -999 : ((altA / 90) * 0.5 - (Math.min(a.mag, 15) / 15) * 0.2) * sizeA;
-                const scoreB = altB < 15 ? -999 : ((altB / 90) * 0.5 - (Math.min(b.mag, 15) / 15) * 0.2) * sizeB;
-                return scoreB - scoreA;
+                // Combined score: altitude, brightness, and frame-size fit (see bestScore)
+                return bestScore(b, ts) - bestScore(a, ts);
             }
         });
         renderList();
@@ -1643,16 +1653,8 @@ function scan() {
             if (S.sortBy === 'brightest') return a.mag - b.mag;
             //if (S.sortBy === 'best') return objectAltAtTime(b.ra, b.dec, ts) - objectAltAtTime(a.ra, a.dec, ts);
             if (S.sortBy === 'best') {
-                // Combined score: normalize altitude (0-90) and brightness (mag 0-15)
-                // Higher altitude = better, lower mag = brighter = better
-                // best: 70% altitude, 30% brightness, objects below 15° scored last
-                const altA = objectAltAtTime(a.ra, a.dec, ts);
-                const altB = objectAltAtTime(b.ra, b.dec, ts);
-                const sizeA = fovFitScore(a);
-                const sizeB = fovFitScore(b);
-                const scoreA = altA < 15 ? -999 : ((altA / 90) * 0.7 - (Math.min(a.mag, 15) / 15) * 0.3) * sizeA;
-                const scoreB = altB < 15 ? -999 : ((altB / 90) * 0.7 - (Math.min(b.mag, 15) / 15) * 0.3) * sizeB;
-                return scoreB - scoreA;
+                // Combined score: altitude, brightness, and frame-size fit (see bestScore)
+                return bestScore(b, ts) - bestScore(a, ts);
             }
             return angSep(a.ra, a.dec, S.ra, S.dec) - angSep(b.ra, b.dec, S.ra, S.dec);
         });
