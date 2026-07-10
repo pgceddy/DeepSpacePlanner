@@ -343,11 +343,23 @@ stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
       <li><b>Background Extraction</b>, sampling well outside the galaxy's outer disk.
         <code class="cmd"><span class="menu">Image Processing → Background Extraction → RBF or Polynomial degree 2–4</span>
 <span class="console">subsky -rbf -samples=20</span></code></li>
-      <li><b>SPCC</b> for color, then a moderate GHS or Asinh stretch — you have more dynamic range to work with than a faint target, so you can afford a gentler curve.
-        <code class="cmd"><span class="console">spcc</span>
-<span class="menu">then Image Processing → Generalized Hyperbolic Stretch, moderate strength</span></code></li>
-      <li><b>Sharpen the core selectively</b> (star mask or luminance mask) once structure is visible, rather than sharpening the whole frame.
-        <code class="cmd"><span class="menu">Extract luminance (if OSC: Image → Extract Channels), apply Wavelet/Unsharp sharpening to luminance only, recombine</span></code></li>
+      <li><b>SPCC</b> for color — always before stretching, on linear data.
+        <code class="cmd"><span class="console">spcc</span></code></li>
+      <li><b>Stretch with GHS in small passes, protecting the core.</b> For a compact bright nucleus with a much fainter extended disk (e.g. a lenticular like NGC 5866), a single aggressive stretch will clip the core before the disk is even visible.
+        <span class="why">Low stretch factor + moderate black point brings up the faint disk without blowing out the nucleus; using the local stretch/symmetry point keeps the pull targeted at shadows/midtones and leaves highlights alone. Do 2–3 gentle passes rather than one big one, checking the histogram between each.</span>
+        <code class="cmd"><span class="menu">Image Processing → Generalized Hyperbolic Stretch — start with a low D (stretch factor), moderate SP (black point/symmetry point), iterate in small passes</span></code></li>
+      <li><b>Optional: gentle S-curve</b> once GHS has the overall range roughly right, for extra contrast without hammering the core further.
+        <code class="cmd"><span class="menu">Image Processing → Curves, subtle S-curve</span></code></li>
+      <li><b>Sharpen the core selectively</b> (star mask or luminance mask) once structure is visible, rather than sharpening the whole frame. Two ways to do this — pick whichever you're comfortable with:
+        <span class="why">Sharpening only affects brightness/structure, not color, so you avoid shifting color balance or fringing edges (like a dust lane) the way sharpening RGB directly can.</span>
+        <br><b>Easier — masked sharpen, no channel split:</b> apply Wavelet Transform directly to the color image, using a luminance-based or star mask to confine the effect to the core. No extraction or recombination step needed.
+        <code class="cmd"><span class="menu">Image Processing → Wavelet Transform — boost detail layers 2–3, ~1.2–1.5×, with a mask limiting the effect to the core</span></code>
+        <br><b>More control — Lab extraction:</b> pull out just the luminance, sharpen it, then recombine.
+        <code class="cmd"><span class="menu">1) Image → Extract Channels → CIE L*a*b* (produces L, a, b files)
+2) Image Processing → Wavelet Transform on the L file only — boost detail layers 2–3, ~1.2–1.5×
+3) Image Processing → RGB Composition — load a into one slot, b into another, the sharpened L into the Luminance slot, tick "Use Luminance", then composite</span></code>
+        <span class="why">RGB Composition is the correct recombine tool — not Merge CFA, which is only for combining raw Bayer-filter subframes.</span></li>
+      <li><b>If a dust lane looks harsh or banded after stretching</b>, back off the GHS black point rather than reducing the sharpening pass — a crushed black point is the usual cause, not over-sharpening.</li>
       <li><b>Light denoise on the outer disk/halo</b>, where signal thins out fastest.
         <code class="cmd"><span class="menu">Image Processing → Noise Reduction, lower strength than a faint-target pass, masked to the outer disk if needed</span></code></li>
     </ol>
