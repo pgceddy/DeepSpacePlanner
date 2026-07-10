@@ -1003,6 +1003,32 @@ p.append('QUERY', adqlQuery);
 // ── OpenNGC via GAVO TAP ──────────────────────────────
 const GAVO_TAP = 'https://dc.g-vo.org/tap/sync';
 
+// OpenNGC records size for many diffuse emission/reflection nebula complexes as just the
+// original catalogued "core" (the brightest knot early observers logged), not the full
+// extent astrophotographers actually image today. Override with real imaged size (arcmin)
+// for the common ones this affects, so the frame-fit check isn't misleadingly optimistic.
+const SIZE_OVERRIDES = {
+    'IC 1805': 150,  // Heart Nebula
+    'IC 1848': 150,  // Soul Nebula / Westerhout 5
+    'NGC 7000': 120, // North America Nebula
+    'IC 5070': 60,   // Pelican Nebula
+    'NGC 6960': 70,  // Western Veil
+    'NGC 6992': 60,  // Eastern Veil
+    'NGC 6995': 60,  // Eastern Veil (lower)
+    'NGC 1499': 145, // California Nebula
+    'NGC 2237': 80,  // Rosette Nebula
+    'IC 1396': 170,  // Elephant's Trunk region / Sh2-131
+    'NGC 281': 35,   // Pacman Nebula
+    'IC 434': 60,    // Horsehead / Flame Nebula region
+    'Sh2-101': 25,   // Tulip Nebula
+};
+
+function applySizeOverrides() {
+    for (const o of CATALOG) {
+        if (SIZE_OVERRIDES[o.id] != null) o.size = SIZE_OVERRIDES[o.id];
+    }
+}
+
 const OPENNGC_TYPES = {
     'G': 'Gx', 'GPair': 'Gx', 'GTrpl': 'Gx', 'GGroup': 'Gx',
     'GCl': 'GC',
@@ -1030,6 +1056,7 @@ function loadNGC() {
 async function loadCatalog() {
     // Step 1: load built-in catalogs     
     const added = loadNGC();
+    applySizeOverrides();
     setCatSt(false, `${CATALOG.length} objects ready (${added} NGC/IC)`);
     setTimeout(() => document.getElementById('catst').classList.remove('on'), 3000);
 
