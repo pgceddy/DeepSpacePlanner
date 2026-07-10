@@ -1078,10 +1078,10 @@ async function loadCatalog() {
             const type = OPENNGC_TYPES[row[iType]] || 'Gx';
             const mag = safeMag(row[iMagV], row[iMagB]);
             const con = row[iCon] || '';
-            const majAx = parseFloat(row[iMajAx]); // arcmin
-            const minAx = parseFloat(row[iMinAx]); // arcmin
-            const size  = isNaN(majAx) ? null : majAx;
-            const sizeMin = isNaN(minAx) ? null : minAx;
+            const majAxDeg = parseFloat(row[iMajAx]); // degrees
+            const minAxDeg = parseFloat(row[iMinAx]); // degrees
+            const size = isNaN(majAxDeg) ? null : Math.round(majAxDeg * 60 * 10) / 10; // → arcmin
+            const sizeMin = isNaN(minAxDeg) ? null : Math.round(minAxDeg * 60 * 10) / 10; // → arcmin
 
             // Build best display name: common name > Messier > NGC/IC id
             const messier = row[iMess] ? `M${row[iMess]}` : '';
