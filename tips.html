@@ -251,6 +251,35 @@
   @media (prefers-reduced-motion: no-preference){
     section.entry{transition:opacity .2s;}
   }
+
+  .see-also{
+    font-family:'SF Mono','Menlo',monospace;
+    font-size:11px;
+    color:var(--ink-dim);
+    margin-top:16px;
+    padding-top:12px;
+    border-top:1px dashed var(--line);
+  }
+  .see-also .label{
+    color:var(--amber);
+    letter-spacing:0.04em;
+  }
+  .see-also a{
+    color:var(--cyan);
+    text-decoration:none;
+    border-bottom:1px dotted rgba(31,122,104,0.5);
+    margin-right:2px;
+  }
+  .see-also a:hover, .see-also a:focus-visible{color:var(--amber);border-bottom-color:var(--amber-dim);}
+
+  .toc-divider{
+    font-family:'SF Mono','Menlo',monospace;
+    font-size:11px;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    margin:0 0 8px;
+  }
 </style>
 </head>
 <body>
@@ -277,6 +306,7 @@
     <p class="sub" style="margin-top:14px;">Each stacking step below shows three ways to apply it: editing <code class="inline">Seestar_preprocessing.ssf</code> directly (best if you want it to happen automatically every run), the Stacking tab in Siril's GUI (Sequence tab → Search Sequences → load the sequence → Stacking tab — good for one-off tweaks), or typing the command straight into Siril's console.</p>
   </header>
 
+  <p class="toc-divider">Jump to object type</p>
   <nav class="toc" aria-label="Jump to object type">
     <a href="#small-faint-galaxy">Small faint galaxy</a>
     <a href="#medium-galaxy">Medium galaxy</a>
@@ -287,6 +317,17 @@
     <a href="#open-cluster">Open cluster</a>
     <a href="#globular-cluster">Globular cluster</a>
     <a href="#general">General / unsure</a>
+  </nav>
+
+  <p class="toc-divider">Jump to technique / goal</p>
+  <nav class="toc" aria-label="Jump to technique">
+    <a href="#dust-lane">Dust lanes &amp; fine structure</a>
+    <a href="#star-colors">Accurate star colors</a>
+    <a href="#core-protection">Protecting a bright core</a>
+    <a href="#star-reduction">De-emphasizing stars</a>
+    <a href="#dodge-burn">Dimensional / 3D look</a>
+    <a href="#transient-detection">Spotting a transient</a>
+    <a href="#mosaic-seams">Mosaic seam management</a>
   </nav>
 
   <section class="entry" id="small-faint-galaxy">
@@ -324,6 +365,7 @@
         <span class="why">Helps a small faint galaxy visually hold its own against the field instead of getting lost among stars.</span>
         <code class="cmd"><span class="menu">Generate a star mask (Star Recomposition tool or PixInsight StarNet), reduce star layer size/intensity, recombine</span></code></li>
     </ol>
+    <p class="see-also"><span class="label">SEE ALSO:</span> <a href="#star-reduction">De-emphasizing stars</a> · <a href="#star-colors">Accurate star colors</a></p>
     <a class="back-to-top" href="#">↑ back to top</a>
   </section>
 
@@ -363,6 +405,7 @@ stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
       <li><b>Light denoise on the outer disk/halo</b>, where signal thins out fastest.
         <code class="cmd"><span class="menu">Image Processing → Noise Reduction, lower strength than a faint-target pass, masked to the outer disk if needed</span></code></li>
     </ol>
+    <p class="see-also"><span class="label">SEE ALSO:</span> <a href="#dust-lane">Dust lanes &amp; fine structure</a> · <a href="#core-protection">Protecting a bright core</a> · <a href="#dodge-burn">Dimensional / 3D look</a></p>
     <a class="back-to-top" href="#">↑ back to top</a>
   </section>
 
@@ -389,6 +432,7 @@ stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
         <span class="why">Worth running an Aladin/SIMBAD overlay pass to catch fainter cluster members or background quasars before you commit to a final frame.</span>
         <code class="cmd"><span class="menu">Load the stacked frame in Aladin Desktop, overlay SIMBAD catalog, cross-check faint sources before finalizing the crop</span></code></li>
     </ol>
+    <p class="see-also"><span class="label">SEE ALSO:</span> <a href="#core-protection">Protecting a bright core</a> · <a href="#star-colors">Accurate star colors</a> · <a href="#transient-detection">Spotting a transient</a></p>
     <a class="back-to-top" href="#">↑ back to top</a>
   </section>
 
@@ -415,6 +459,7 @@ stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
       <li><b>Watch for mosaic seams</b> if you've combined multiple Seestar sessions or panels.
         <code class="cmd"><span class="menu">Image Processing → Background Extraction, sample along seam lines specifically; feather the blend if seams persist</span></code></li>
     </ol>
+    <p class="see-also"><span class="label">SEE ALSO:</span> <a href="#core-protection">Protecting a bright core</a> · <a href="#star-reduction">De-emphasizing stars</a> · <a href="#mosaic-seams">Mosaic seam management</a></p>
     <a class="back-to-top" href="#">↑ back to top</a>
   </section>
 
@@ -442,6 +487,7 @@ stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
         <code class="cmd"><span class="console">denoise -nocosmetic</span>
 <span class="menu">apply before the last GHS pass, not after</span></code></li>
     </ol>
+    <p class="see-also"><span class="label">SEE ALSO:</span> <a href="#star-colors">Accurate star colors</a> · <a href="#mosaic-seams">Mosaic seam management</a></p>
     <a class="back-to-top" href="#">↑ back to top</a>
   </section>
 
@@ -469,6 +515,7 @@ stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
         <code class="cmd"><span class="console">crop x y width height</span>
 <span class="menu">then Image → Resample, 150–200% with a smooth interpolation (Lanczos)</span></code></li>
     </ol>
+    <p class="see-also"><span class="label">SEE ALSO:</span> <a href="#core-protection">Protecting a bright core</a> · <a href="#dodge-burn">Dimensional / 3D look</a></p>
     <a class="back-to-top" href="#">↑ back to top</a>
   </section>
 
@@ -490,6 +537,7 @@ stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
       <li><b>Watch bright-star halos/blooming</b> and manage with a gentle highlight rolloff rather than clipping.
         <code class="cmd"><span class="menu">Curves tool: pull the highlight rolloff down slightly rather than clipping the top of the histogram</span></code></li>
     </ol>
+    <p class="see-also"><span class="label">SEE ALSO:</span> <a href="#star-colors">Accurate star colors</a> · <a href="#star-reduction">De-emphasizing stars</a> (for why to skip it here)</p>
     <a class="back-to-top" href="#">↑ back to top</a>
   </section>
 
@@ -510,6 +558,7 @@ stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
       <li><b>Stretch in two zones</b>: a restrained curve for the core, a stronger one for the resolved outer stars, blended with a radial or luminance mask.
         <code class="cmd"><span class="menu">Duplicate image, apply GHS at two strengths, blend via radial gradient mask centered on the core</span></code></li>
     </ol>
+    <p class="see-also"><span class="label">SEE ALSO:</span> <a href="#core-protection">Protecting a bright core</a> · <a href="#dodge-burn">Dimensional / 3D look</a></p>
     <a class="back-to-top" href="#">↑ back to top</a>
   </section>
 
@@ -535,6 +584,136 @@ stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
       <li><b>Denoise, then decide</b> whether the target needs sharpening, star reduction, or neither — that call depends on what showed up once background and stretch are done.
         <code class="cmd"><span class="console">denoise -nocosmetic</span></code></li>
     </ol>
+    <p class="see-also"><span class="label">SEE ALSO:</span> once you know what you're looking at, jump to <a href="#dust-lane">dust lanes</a>, <a href="#core-protection">core protection</a>, <a href="#star-colors">star colors</a>, or <a href="#star-reduction">star reduction</a> as needed.</p>
+    <a class="back-to-top" href="#">↑ back to top</a>
+  </section>
+
+  <section class="entry" id="dust-lane">
+    <div class="entry-head">
+      <span class="tag">TECHNIQUE</span>
+      <h2>Dust lanes &amp; fine internal structure</h2>
+    </div>
+    <p class="criteria">edge-on or inclined galaxies with dark absorption features, or any target with fine tonal detail worth preserving — e.g. NGC 5866, NGC 5907</p>
+    <ol class="steps">
+      <li><b>Sharpen the luminance only, not the whole RGB stack.</b>
+        <span class="why">Sharpening a color image directly can fringe or shift color right at the dust lane edge. Splitting to Lab and sharpening L keeps structure and color independent.</span>
+        <code class="cmd"><span class="menu">1) Image → Extract Channels → CIE L*a*b* (produces L, a, b files)
+2) Image Processing → Wavelet Transform on the L file only — boost detail layers 2–3, ~1.2–1.5×
+3) Image Processing → RGB Composition — load a into one slot, b into another, the sharpened L into the Luminance slot, tick "Use Luminance", then composite</span></code></li>
+      <li><b>If the dust lane looks harsh or banded after stretching, back off the GHS black point (SP) first</b> — a crushed black point is the usual cause, not over-sharpening. Reducing the sharpen pass first just masks the real problem.</li>
+      <li><b>Isolate the lane for a targeted local-contrast pass</b> once the overall stretch is right, rather than pushing contrast globally.
+        <code class="cmd"><span class="menu">Select the dust lane's tonal range (Color Range on shadows, feathered), apply Local Contrast/Clarity within that selection only</span></code></li>
+      <li><b>Finish with light hand dodge/burn along the lane</b> — see <a href="#dodge-burn">Dimensional / 3D look</a> for the technique.</li>
+    </ol>
+    <p class="see-also"><span class="label">SEE ALSO:</span> <a href="#medium-galaxy">Medium galaxy</a> · <a href="#core-protection">Protecting a bright core</a> · <a href="#dodge-burn">Dimensional / 3D look</a></p>
+    <a class="back-to-top" href="#">↑ back to top</a>
+  </section>
+
+  <section class="entry" id="star-colors">
+    <div class="entry-head">
+      <span class="tag">TECHNIQUE</span>
+      <h2>Accurate star colors</h2>
+    </div>
+    <p class="criteria">any target where star color is part of the payoff — open clusters, wide fields, galaxy fields with foreground stars</p>
+    <ol class="steps">
+      <li><b>Run SPCC before any saturation work or stretch.</b>
+        <span class="why">SPCC calibrates against field star photometry, which needs mostly-linear data — running it after a stretch skews the result.</span>
+        <code class="cmd"><span class="menu">Ctrl+Shift+C, or Image Processing → Color Calibration → Spectrophotometric Color Calibration</span>
+<span class="console">spcc</span></code></li>
+      <li><b>Pick a genuinely dark-sky patch</b> for the background reference when SPCC prompts for one — not faint nebula glow, which will bias the whole calibration.</li>
+      <li><b>Protect star cores from clipping during stretch.</b>
+        <span class="why">A blown-out core loses its color information first — once it's pure white there's nothing left to read.</span>
+        <code class="cmd"><span class="menu">Curves tool: pull the highlight rolloff down slightly rather than clipping the top of the histogram</span></code></li>
+      <li><b>If colors look washed out after a strong stretch</b>, boost saturation selectively on star tones (Hue/Saturation targeted range) rather than a global bump that also shifts nebula or galaxy color.</li>
+    </ol>
+    <p class="see-also"><span class="label">SEE ALSO:</span> <a href="#open-cluster">Open cluster</a> · <a href="#large-galaxy">Large galaxy or galaxy group</a></p>
+    <a class="back-to-top" href="#">↑ back to top</a>
+  </section>
+
+  <section class="entry" id="core-protection">
+    <div class="entry-head">
+      <span class="tag">TECHNIQUE</span>
+      <h2>Protecting a bright core while pulling up faint structure</h2>
+    </div>
+    <p class="criteria">compact bright nucleus with much fainter surrounding structure — lenticular galaxies, globular cluster cores, planetary nebula shells</p>
+    <ol class="steps">
+      <li><b>Build a mask isolating the bright region</b> — a radial mask for clusters/planetary nebulae, a luminance or range mask for a galaxy nucleus.
+        <code class="cmd"><span class="menu">Create a radial or luminance/range mask centered on the bright feature</span></code></li>
+      <li><b>Invert the mask to protect that region</b>, then stretch the rest more aggressively. GHS in low-D, moderate-SP passes works better than one large pull.
+        <code class="cmd"><span class="menu">Image Processing → Generalized Hyperbolic Stretch, low stretch factor, iterate in 2–3 small passes with the mask active</span></code></li>
+      <li><b>For two genuinely different brightness zones</b> (e.g. a globular's core vs. its resolved outer stars), stretch two duplicate copies at different strengths and blend with the same mask rather than hunting for one curve that satisfies both.
+        <code class="cmd"><span class="menu">Duplicate image, apply GHS at two strengths, blend via the radial/luminance mask</span></code></li>
+      <li><b>Check the histogram between each pass</b> rather than trusting the autostretch preview — it's easy to over-stretch the protected side without noticing until you look at the numbers.</li>
+    </ol>
+    <p class="see-also"><span class="label">SEE ALSO:</span> <a href="#medium-galaxy">Medium galaxy</a> · <a href="#planetary-nebula">Planetary nebula</a> · <a href="#globular-cluster">Globular cluster</a></p>
+    <a class="back-to-top" href="#">↑ back to top</a>
+  </section>
+
+  <section class="entry" id="star-reduction">
+    <div class="entry-head">
+      <span class="tag">TECHNIQUE</span>
+      <h2>De-emphasizing stars to favor the real subject</h2>
+    </div>
+    <p class="criteria">when stars compete visually with the actual subject — small faint galaxies, nebulae with dense foreground star fields</p>
+    <ol class="steps">
+      <li><b>Generate a star mask</b> — PixInsight StarNet, or Adobe Camera Raw's Select Subject / manual mask, whichever's already in your pipeline for that session.
+        <code class="cmd"><span class="menu">Adobe Camera Raw: star-mask via Select Subject or manual mask
+PixInsight: StarNet star removal, keep the extracted star layer separately</span></code></li>
+      <li><b>Reduce star size/intensity on the masked layer only</b>, not the underlying nebula or galaxy signal.</li>
+      <li><b>Recombine and check for halos</b> around the largest stars — a too-aggressive reduction leaves a visible ring; back off if so.</li>
+      <li><b>Skip this entirely for open clusters</b> and anything where the stars themselves are the subject — reducing them there works against the target, not for it.</li>
+    </ol>
+    <p class="see-also"><span class="label">SEE ALSO:</span> <a href="#small-faint-galaxy">Small, faint galaxy</a> · <a href="#small-nebula">Small nebula</a></p>
+    <a class="back-to-top" href="#">↑ back to top</a>
+  </section>
+
+  <section class="entry" id="dodge-burn">
+    <div class="entry-head">
+      <span class="tag">TECHNIQUE</span>
+      <h2>Dimensional / "3D" look on a core or dust lane</h2>
+    </div>
+    <p class="criteria">adds a sense of depth to a bright core or absorption feature — a finishing pass, not a substitute for masking</p>
+    <ol class="steps">
+      <li><b>Do this last</b>, after stretch, sharpen, and color work are done — it's a finishing touch, not a fix for an under-stretched image.</li>
+      <li><b>Work on a duplicate luminance layer</b>, low opacity (10–20%) brush, several light passes rather than one heavy one.
+        <code class="cmd"><span class="menu">Duplicate the luminance layer, set brush opacity 10–20%, build up the effect over multiple passes</span></code></li>
+      <li><b>Burn along the inside edge of a dust lane or the shadow side of a core</b> to suggest depth; dodge lightly on the opposite edge.</li>
+      <li><b>Zoom out to check</b> before flattening — it's easy to overdo this at 100% zoom and not notice until you back out and it looks artificial.</li>
+    </ol>
+    <p class="see-also"><span class="label">SEE ALSO:</span> <a href="#dust-lane">Dust lanes &amp; fine structure</a> · <a href="#medium-galaxy">Medium galaxy</a> · <a href="#globular-cluster">Globular cluster</a></p>
+    <a class="back-to-top" href="#">↑ back to top</a>
+  </section>
+
+  <section class="entry" id="transient-detection">
+    <div class="entry-head">
+      <span class="tag">TECHNIQUE</span>
+      <h2>Spotting a faint transient or supernova</h2>
+    </div>
+    <p class="criteria">checking a galaxy field against a reference epoch for a new point source — e.g. SN 2026kid in NGC 5907</p>
+    <ol class="steps">
+      <li><b>Stack the new session separately from archived data</b> rather than combining, so the two epochs can be compared like-for-like.</li>
+      <li><b>Register both stacks to the same reference frame</b> so field stars line up pixel for pixel before comparison.</li>
+      <li><b>Blink or difference the two frames</b> (subtract one from the other). A genuine transient shows up as a bright point where nothing was before; noise and hot pixels won't line up consistently across epochs the way a real source does.</li>
+      <li><b>Cross-check anything promising against a transient database</b> (e.g. the Transient Name Server) before assuming it's new — plenty of "new" points turn out to be known variable stars or minor planets passing through the field.</li>
+    </ol>
+    <p class="see-also"><span class="label">SEE ALSO:</span> <a href="#large-galaxy">Large galaxy or galaxy group</a> · <a href="#medium-galaxy">Medium galaxy</a></p>
+    <a class="back-to-top" href="#">↑ back to top</a>
+  </section>
+
+  <section class="entry" id="mosaic-seams">
+    <div class="entry-head">
+      <span class="tag">TECHNIQUE</span>
+      <h2>Mosaic seam management</h2>
+    </div>
+    <p class="criteria">combining multiple Seestar sessions or panels into one wider frame</p>
+    <ol class="steps">
+      <li><b>Register all panels to a common reference frame</b> before stacking or blending.</li>
+      <li><b>Run Background Extraction with sample points placed along the seam lines specifically</b>, not just around the frame perimeter.
+        <code class="cmd"><span class="menu">Image Processing → Background Extraction, sample along seam lines specifically; feather the blend if seams persist</span></code></li>
+      <li><b>Feather the blend across the seam</b> if it's still visible after background matching.</li>
+      <li><b>Check the seam again after the final stretch</b> — gradients invisible in linear data can reappear once stretched.</li>
+    </ol>
+    <p class="see-also"><span class="label">SEE ALSO:</span> <a href="#small-nebula">Small nebula</a> · <a href="#large-diffuse-nebula">Large diffuse nebula</a></p>
     <a class="back-to-top" href="#">↑ back to top</a>
   </section>
 
