@@ -664,7 +664,7 @@ function fovFit(o) {
     return { cls: 'large', label: `Won't fully fit (${size}′) — try Mosaic mode`, icon: '⬈' };
   }
   if (ratio > 0.30 && ratio <= 1.4) {
-      return { cls: 'Very good', label: `Very good frame fit (${size}′)`, icon: '✓✓' };
+      return { cls: 'very good', label: `Very good frame fit (${size}′)`, icon: '✓✓' };
   }
   if (ratio < 0.20) {
     return { cls: 'small', label: `Small in-frame (${size}′) — plan extra integration`, icon: '⬥' };
