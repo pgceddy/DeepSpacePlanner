@@ -1704,7 +1704,7 @@ function renderList() {
       <div class="rico">${TICON[o.type]||'🔭'}</div>
       <div class="rmeta">
         <div class="rname">${o.name}${o.id!==o.name?`<span>${o.id}</span>`:''}${getLog(o.id).length?`<span style="color:#2f7d2f;margin-left:6px">✓</span>`:''}</div>
-        <div class="rsub">${TNAME[o.type]||o.type}${o.con?' · '+o.con:''}<span class="fitbadge ${fit.cls}">${fit.icon} ${fit.cls==='good'?'fits frame':fit.cls==='small'?'small':fit.cls==='large'?'too large':''}</span></div>
+        <div class="rsub">${TNAME[o.type]||o.type}${o.con?' · '+o.con:''}<span class="fitbadge ${fit.cls}">${fit.icon} ${fit.cls==='very good'?'fits frame well':fit.cls==='good'?'fits frame':fit.cls==='small'?'small':fit.cls==='large'?'too large':''}</span></div>
       </div>
       <div class="rcoord">
         <span class="rc">${fRA(o.ra)}</span>
