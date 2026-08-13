@@ -325,6 +325,7 @@
     <a href="#star-colors">Accurate star colors</a>
     <a href="#core-protection">Protecting a bright core</a>
     <a href="#star-reduction">De-emphasizing stars</a>
+    <a href="#masked-denoise">Background-only denoise</a>
     <a href="#dodge-burn">Dimensional / 3D look</a>
     <a href="#transient-detection">Spotting a transient</a>
     <a href="#mosaic-seams">Mosaic seam management</a>
@@ -414,7 +415,7 @@ stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
       <span class="tag">GALAXY</span>
       <h2>Large galaxy or galaxy group</h2>
     </div>
-    <p class="criteria">size &gt; 15′, or a cluster of galaxies in one field — e.g. Markarian's Chain, Coma Cluster field</p>
+    <p class="criteria">size &gt; 15′, or a cluster of galaxies in one field — e.g. Markarian's Chain, Coma Cluster field, IC 342</p>
     <ol class="steps">
       <li><b>Stack with generous frame count</b> — large fields benefit from drizzle integration if you have the subs for it.
         <code class="cmd"><span class="script">edit Seestar_preprocessing.ssf stack line, add drizzle options: "stack r_pp_light rej w 3 3 -drizzle -scale=2.0 -pixfrac=0.7 -norm=addscale -output_norm -rgb_equal -out=result"</span>
@@ -432,7 +433,14 @@ stack r_pp_light rej w 3 3 -norm=addscale -output_norm</span></code></li>
         <span class="why">Worth running an Aladin/SIMBAD overlay pass to catch fainter cluster members or background quasars before you commit to a final frame.</span>
         <code class="cmd"><span class="menu">Load the stacked frame in Aladin Desktop, overlay SIMBAD catalog, cross-check faint sources before finalizing the crop</span></code></li>
     </ol>
-    <p class="see-also"><span class="label">SEE ALSO:</span> <a href="#core-protection">Protecting a bright core</a> · <a href="#star-colors">Accurate star colors</a> · <a href="#transient-detection">Spotting a transient</a></p>
+    <p class="criteria" style="margin-top:18px;"><b>Faint, large, low-surface-brightness case</b> (e.g. IC 342, "The Hidden Galaxy") — same steps above, plus:</p>
+    <ol class="steps">
+      <li><b>Budget more integration than the size suggests.</b>
+        <span class="why">A 20′+ galaxy sounds bright given its Messier-catalog-adjacent size, but low surface brightness plus foreground Milky Way dust extinction (IC 342 sits near the galactic equator) means it behaves more like a faint target. Plan 1–2 hrs minimum; combining subs from separate sessions/nights is fine as long as each is background-extracted and SPCC'd individually before the final stack.</span></li>
+      <li><b>Expect a warm/reddish color cast from foreground dust</b> and don't try to fully correct it out — SPCC handles star colors correctly, but the galaxy's own reddening from Milky Way extinction is real, not a calibration error.</li>
+      <li><b>If the outer disk is noisy after stack + stretch, denoise the background/halo only, not the whole frame.</b> Aggressive whole-image noise reduction (including third-party tools like Topaz) will smear spiral arm and dust lane detail right along with the noise. See <a href="#masked-denoise">Background-only denoise</a> for the masking technique.</li>
+    </ol>
+    <p class="see-also"><span class="label">SEE ALSO:</span> <a href="#core-protection">Protecting a bright core</a> · <a href="#star-colors">Accurate star colors</a> · <a href="#transient-detection">Spotting a transient</a> · <a href="#masked-denoise">Background-only denoise</a></p>
     <a class="back-to-top" href="#">↑ back to top</a>
   </section>
 
@@ -667,6 +675,28 @@ PixInsight: StarNet star removal, keep the extracted star layer separately</span
     <a class="back-to-top" href="#">↑ back to top</a>
   </section>
 
+  <section class="entry" id="masked-denoise">
+    <div class="entry-head">
+      <span class="tag">TECHNIQUE</span>
+      <h2>Background-only denoise (masked)</h2>
+    </div>
+    <p class="criteria">noisy outer halo/background on a faint or long-integration target, done as a Photoshop finishing pass after Siril — e.g. IC 342's outer disk</p>
+    <ol class="steps">
+      <li><b>Duplicate the finished (pre-denoise) layer.</b> Work on the duplicate so the sharp original is always there to fall back to.</li>
+      <li><b>Select the galaxy/nebula itself</b> with a loose lasso or oval — doesn't need to be precise.
+        <span class="why">A rough selection is fine because the next step (feathering) does the real work of making the transition invisible.</span></li>
+      <li><b>Feather the selection generously</b> (30–50px) so there's no hard edge between treated and untreated regions.
+        <code class="cmd"><span class="menu">Select → Modify → Feather, 30–50px depending on image resolution</span></code></li>
+      <li><b>Invert the selection</b> so the background is selected and the subject is protected.
+        <code class="cmd"><span class="menu">Select → Inverse (Shift+Ctrl+I / Shift+Cmd+I)</span></code></li>
+      <li><b>Run denoise only within that selection</b> (Topaz DeNoise, Camera Raw, or similar) — favor chroma/color noise reduction over luminance, since luminance denoise is what smears real faint structure.</li>
+      <li><b>Flatten and check the seam at 100% zoom.</b> A visible ring or brightness step at the old selection boundary means the feather was too tight — undo and redo with a larger feather radius.</li>
+      <li><b>If the galaxy's own edge still looks noisy</b> right at the boundary, that's expected — the transition zone between subject and sky is inherently harder to clean without eating into real signal. Don't chase it further unless you're printing large or cropping in tight.</li>
+    </ol>
+    <p class="see-also"><span class="label">SEE ALSO:</span> <a href="#large-galaxy">Large galaxy or galaxy group</a> · <a href="#small-faint-galaxy">Small, faint galaxy</a> · <a href="#core-protection">Protecting a bright core</a></p>
+    <a class="back-to-top" href="#">↑ back to top</a>
+  </section>
+
   <section class="entry" id="dodge-burn">
     <div class="entry-head">
       <span class="tag">TECHNIQUE</span>
@@ -718,7 +748,7 @@ PixInsight: StarNet star removal, keep the extracted star layer separately</span
   </section>
 
   <footer>
-    Field notes from processing sessions on M94, Markarian's Chain, Ghost Nebula (VdB 141), Coma Cluster, and Sh2-216/232/235 with a Seestar S50. Part of the <a href="https://github.com/">DeepSkyScanner</a> project. Corrections and additions welcome via GitHub issues.
+    Field notes from processing sessions on M94, Markarian's Chain, Ghost Nebula (VdB 141), Coma Cluster, IC 342, and Sh2-216/232/235 with a Seestar S50. Part of the <a href="https://github.com/">DeepSkyScanner</a> project. Corrections and additions welcome via GitHub issues.
   </footer>
 
 </div>
