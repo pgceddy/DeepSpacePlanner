@@ -1680,7 +1680,7 @@ function renderList() {
     return;
   }
   const shown = S.fovFitOnly
-    ? S.results.filter(o => { const f = fovFit(o); return f.cls==='good' || f.cls==='unknown'; })
+    ? S.results.filter(o => { const f = fovFit(o); return f.cls ==='very good' || f.cls==='good' || f.cls==='unknown'; })
     : S.results;
 
   if (!shown.length) {
