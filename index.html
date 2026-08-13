@@ -178,7 +178,7 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 .fitbadge.large{color:#b8302f;background:rgba(184,48,47,.12)}
 .fitbadge.unknown{display:none}
 .row.fit-excluded{opacity:.4}
-#fovfitbtn.on{background:var(--amber);border-color:var(--adim);color:#1a1610}
+#fovfitbtn.on{background:var(--amber);border-color:var(--amber);color:#1a1610}
 
 
 /* Detail sheet */
@@ -411,7 +411,10 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
   </div>
   <div class="qr">
     <span class="ql">Frame</span>
-    <button id="fovfitbtn" onclick="toggleFovFitOnly()" class="btn">
+    <button id="fovfitbtn" onclick="toggleFovFitOnly()"
+            style="font-family:var(--mono);font-size:.6rem;letter-spacing:.06em;
+                   padding:5px 10px;cursor:pointer;border-radius:3px;
+                   background:none;border:1px solid var(--border);color:var(--adim)">
       Hide poor Seestar fits
     </button>
   </div>
