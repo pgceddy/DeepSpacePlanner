@@ -178,6 +178,12 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 .fitbadge.large{color:#b8302f;background:rgba(184,48,47,.12)}
 .fitbadge.unknown{display:none}
 .row.fit-excluded{opacity:.4}
+
+/* Ascending/descending trend badge */
+.trendbadge{font-family:var(--mono);font-size:.56rem;letter-spacing:.04em;margin-left:6px;
+          padding:1px 5px;border-radius:3px;white-space:nowrap;display:inline-block}
+.trendbadge.asc{color:#2f7d2f;background:rgba(47,125,47,.12)}
+.trendbadge.desc{color:#a3590f;background:rgba(163,89,15,.12)}
 #fovfitbtn.on{background:var(--amber);border-color:var(--amber);color:#1a1610}
 
 
@@ -669,7 +675,7 @@ function fovFit(o) {
     return { cls: 'large', label: `Won't fully fit (${size}′) — try Mosaic mode`, icon: '⬈' };
   }
   if (ratio > 0.30 && ratio <= 1.4) {
-      return { cls: 'very good', label: `Very good frame fit (${size}′)`, icon: '✓✓' };
+      return { cls: 'very good', label: `Very good frame fit (${size}′)`, icon: '★' };
   }
   if (ratio < 0.20) {
     return { cls: 'small', label: `Small in-frame (${size}′) — plan extra integration`, icon: '⬥' };
@@ -690,7 +696,17 @@ function sizeFitScore(o) {
   return Math.exp(-((logRatio - logIdeal) ** 2) / (2 * sigma * sigma));
 }
 
-// Shared "Best" ranking score: altitude (favor higher in sky), brightness, and frame fit.
+// True if the object is still climbing (higher altitude a few minutes from now)
+// rather than past transit and heading down toward the horizon.
+function isAscending(ra, dec, ts) {
+  const deltaMs = 5 * 60 * 1000; // 5-minute look-ahead
+  const altNow   = objectAltAtTime(ra, dec, ts);
+  const altLater = objectAltAtTime(ra, dec, ts + deltaMs);
+  return altLater > altNow;
+}
+
+// Shared "Best" ranking score: altitude (favor higher in sky), brightness, frame fit,
+// and ascending/descending trend (favor objects still climbing over ones past transit).
 // Objects below 15° altitude are always ranked last regardless of other factors.
 function bestScore(o, ts) {
   const alt = objectAltAtTime(o.ra, o.dec, ts);
@@ -698,7 +714,8 @@ function bestScore(o, ts) {
   const altScore  = alt / 90;
   const magScore  = 1 - Math.min(o.mag, 15) / 15;
   const sizeScore = sizeFitScore(o);
-  return altScore * 0.5 + magScore * 0.25 + sizeScore * 0.25;
+  const ascScore  = isAscending(o.ra, o.dec, ts) ? 1 : 0;
+  return altScore * 0.45 + magScore * 0.20 + sizeScore * 0.20 + ascScore * 0.15;
 }
 
 const TICON = { GC: "✨", OC: "⭐", Gx: "🌀", EN: "🟥", PN: "🔵", RN: "🔷", SNR: "💥", SC: "☁️" };
@@ -1702,14 +1719,17 @@ function renderList() {
   document.getElementById('lcount').textContent =
     `${shown.length} object${shown.length!==1?'s':''} in view${S.fovFitOnly && shown.length!==S.results.length ? ` (${S.results.length-shown.length} hidden — poor frame fit)` : ''}`;
   document.getElementById('lmeta').textContent = `FOV ${S.fov}° · mag ≤${S.mag.toFixed(1)}`;
+  const listTs = S.planning ? getPlanTs() : Date.now();
   items.innerHTML = shown.map(o=>{
     const sep = angSep(o.ra,o.dec,S.scanRA,S.scanDec);
     const fit = fovFit(o);
+    const ascending = isAscending(o.ra, o.dec, listTs);
+    const trendIcon = `<span class="trendbadge ${ascending?'asc':'desc'}" title="${ascending?'Ascending — still climbing':'Descending — past transit'}">${ascending?'↑':'↓'}</span>`;
     return `<div class="row" onclick="openDetail('${o.id.replace(/'/g,"\\'")}',${sep.toFixed(3)})">
       <div class="rico">${TICON[o.type]||'🔭'}</div>
       <div class="rmeta">
         <div class="rname">${o.name}${o.id!==o.name?`<span>${o.id}</span>`:''}${getLog(o.id).length?`<span style="color:#2f7d2f;margin-left:6px">✓</span>`:''}</div>
-        <div class="rsub">${TNAME[o.type]||o.type}${o.con?' · '+o.con:''}<span class="fitbadge ${fit.cls}">${fit.icon} ${fit.cls==='very good'?'fits frame well':fit.cls==='good'?'fits frame':fit.cls==='small'?'small':fit.cls==='large'?'too large':''}</span></div>
+        <div class="rsub">${TNAME[o.type]||o.type}${o.con?' · '+o.con:''}<span class="fitbadge ${fit.cls}">${fit.icon} ${fit.cls==='very good'?'fits frame well':fit.cls==='good'?'fits frame':fit.cls==='small'?'small':fit.cls==='large'?'too large':''}</span>${trendIcon}</div>
       </div>
       <div class="rcoord">
         <span class="rc">${fRA(o.ra)}</span>
