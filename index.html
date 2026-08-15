@@ -1860,7 +1860,36 @@ async function fetchWikiDetail(o) {
   return { image: '', desc: '', url: '' };
 }
 
-// Seestar imaging notes — built from object properties, no API needed
+// Pick the integration-time note for a magnitude from a sorted list of
+// [maxMag, text] brackets. Returns the first bracket whose maxMag exceeds
+// the object's magnitude, falling back to the last (faintest) bracket.
+function magBracket(mag, brackets) {
+  if (mag == null || mag === 99.0) return brackets[Math.floor(brackets.length/2)][1];
+  for (const [maxMag, text] of brackets) {
+    if (mag < maxMag) return text;
+  }
+  return brackets[brackets.length - 1][1];
+}
+
+// Detect nearby catalog objects that would land in the same Seestar frame,
+// so a pair/group can be flagged as a single-session target instead of
+// treated in isolation. Returns up to 2 closest companions within ~25'.
+function nearbyCompanions(o) {
+  if (o.ra == null || o.dec == null || !Array.isArray(CATALOG)) return [];
+  const THRESH_DEG = 25 / 60; // ~25 arcmin — comfortably inside the 43' short edge
+  const found = [];
+  for (const other of CATALOG) {
+    if (other === o || other.id === o.id || other.ra == null || other.dec == null) continue;
+    const sep = angSep(o.ra, o.dec, other.ra, other.dec);
+    if (sep <= THRESH_DEG) found.push({ obj: other, sep });
+  }
+  found.sort((a, b) => a.sep - b.sep);
+  return found.slice(0, 2);
+}
+
+// Seestar imaging notes — built from the object's own catalog data
+// (magnitude, size, shape, neighbors), not a fixed per-type template.
+// No network call, so this works fully offline in the field.
 function seestarNotes(o) {
   const type = o.type;
   const mag  = o.mag;
@@ -1868,7 +1897,11 @@ function seestarNotes(o) {
 
   if (type === 'GC') {
     notes.push('Globular clusters resolve well with the Seestar S50.');
-    notes.push(mag < 7 ? 'Very bright — even short integrations (5–10 min) will show good detail.' : 'Aim for 20–30 minutes of integration for core resolution.');
+    notes.push(magBracket(mag, [
+      [6,  'Very bright — even short integrations (5–10 min) will show good detail.'],
+      [9,  'Aim for 20–30 minutes of integration for core resolution.'],
+      [Infinity, 'Faint for a globular — plan 45–60 minutes to resolve the core against a dimmer background.'],
+    ]));
     notes.push('Use the mosaic mode if the cluster is larger than 1°.');
   } else if (type === 'OC') {
     notes.push('Open clusters are among the easiest Seestar targets.');
@@ -1876,19 +1909,52 @@ function seestarNotes(o) {
     notes.push('Wide FOV captures the full cluster context.');
   } else if (type === 'Gx') {
     notes.push('Galaxies benefit from longer integration on the Seestar S50.');
-    notes.push(mag < 9 ? 'Bright enough for 30–45 min sessions — look for dust lanes and structure.' : 'Faint — plan 1–2 hours of integration for good detail. Dark skies help significantly.');
+    notes.push(magBracket(mag, [
+      [7,    '20–30 minutes should give a clean, bright core with hints of structure.'],
+      [9,    '30–45 minutes is enough to start bringing out dust lanes and arm structure.'],
+      [10.5, '1–2 hours of integration will start showing spiral or bar detail in the stretch.'],
+      [12,   '3–4 hours minimum — this is faint-galaxy territory, so budget for a full session.'],
+      [Infinity, '4–5+ hours — very faint; outer arms or a dust lane will need serious integration and dark skies for decent SNR.'],
+    ]));
     notes.push('Stack as many frames as possible; galaxy detail improves greatly with more data.');
   } else if (type === 'PN') {
     notes.push('Planetary nebulae are compact but high surface brightness.');
-    notes.push('20–40 minutes of integration works well. The Seestar\'s narrowband filter helps with emission detail.');
-    notes.push('May appear star-like in short exposures — longer integration reveals the disk.');
+    notes.push(magBracket(mag, [
+      [8,  '15–20 minutes should capture a bright, well-defined disk.'],
+      [10, '20–40 minutes works well — the Seestar\'s narrowband/LP filter helps with emission detail.'],
+      [Infinity, 'Faint for a planetary — plan on an hour or more; it may look star-like in short subs until integration builds up.'],
+    ]));
   } else if (type === 'EN' || type === 'RN' || type === 'SNR') {
     notes.push('Emission nebulae are excellent Seestar targets — the built-in LP filter boosts contrast.');
-    notes.push(mag < 8 ? 'Bright — 30 min gives good results. Mosaic mode recommended for large nebulae.' : 'Faint — plan 1–2 hours minimum. Multiple sessions can be stacked in Siril.');
+    notes.push(magBracket(mag, [
+      [8,  'Bright — 30 minutes gives good results. Mosaic mode recommended if it\'s a large nebula.'],
+      [10, 'Faint — plan 1–2 hours minimum. Multiple sessions can be stacked together in Siril.'],
+      [Infinity, 'Very faint — plan 2–3+ hours, likely across multiple sessions; dark skies matter a lot here.'],
+    ]));
     notes.push('Try the enhanced mode if available; narrowband processing in Siril brings out fine detail.');
   } else {
     notes.push('Point the Seestar at the object and let it integrate for at least 30 minutes.');
     notes.push('More integration time always improves the result — stack multiple sessions if possible.');
+  }
+
+  // Edge-on / elongated shape — flag when the minor axis is well under the
+  // major axis, since a dust lane reads very differently than a face-on disk.
+  if (o.size != null && o.sizeMin != null && o.size > 0) {
+    const axisRatio = o.sizeMin / o.size;
+    if (axisRatio < 0.45) {
+      if (o.size < 5) {
+        notes.push(`At ${o.size}′×${o.sizeMin}′, this is a tight edge-on profile — at the Seestar's resolution it'll stay a soft, dust-lane-hinting streak no matter how much integration you throw at it. More time helps SNR and smoothness, not resolved detail.`);
+      } else {
+        notes.push(`This is a fairly elongated edge-on target (${o.size}′×${o.sizeMin}′) — the dust lane should show reasonably well once you're past the integration times above.`);
+      }
+    }
+  }
+
+  // Nearby companions — objects close enough to share a single Seestar frame.
+  const companions = nearbyCompanions(o);
+  if (companions.length) {
+    const names = companions.map(c => `${c.obj.name || c.obj.id} (${(c.sep*60).toFixed(0)}′ away)`).join(' and ');
+    notes.push(`${names} ${companions.length>1?'are':'is'} close enough to fit in the same frame — capture ${companions.length>1?'them':'it'} together in one session rather than splitting time.`);
   }
 
   const fit = fovFit(o);
