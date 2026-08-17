@@ -1884,7 +1884,7 @@ function magBracket(mag, brackets) {
 // treated in isolation. Returns up to 2 closest companions within ~25'.
 function nearbyCompanions(o) {
   if (o.ra == null || o.dec == null || !Array.isArray(CATALOG)) return [];
-  const THRESH_DEG = 25 / 60; // ~25 arcmin — comfortably inside the 43' short edge
+  const THRESH_DEG = (SEESTAR_FOV.w - 5) / 60; // short edge minus ~5' margin for framing/centering
   const MIN_DEG = 0.01;       // ~36″ — below this, treat as the same object (e.g. Messier/NGC alias)
   const found = [];
   for (const other of CATALOG) {
@@ -1920,25 +1920,25 @@ function seestarNotes(o) {
   } else if (type === 'Gx') {
     notes.push(magBracket(mag, [
       [7,    '20–30 minutes of integration should give a clean, bright core with hints of structure.'],
-      [9,    '30–45 minutes of integration is enough to start bringing out dust lanes and arm structure.'],
+      [9,    '30–45 minutes is enough to start bringing out dust lanes and arm structure.'],
       [10.5, '1–2 hours of integration will start showing spiral or bar detail in the stretch.'],
-      [12,   '3–4 hours of integration minimum — this is faint-galaxy territory, so budget for a full session.'],
-      [Infinity, '4–5+ hours of integration — very faint; outer arms or a dust lane will need serious integration and dark skies for decent SNR.'],
+      [12,   '3–4 hours minimum — this is faint-galaxy territory, so budget for a full session.'],
+      [Infinity, '4–5+ hours — very faint; outer arms or a dust lane will need serious integration and dark skies for decent SNR.'],
     ]));
     notes.push('Stack as many frames as possible; galaxy detail improves greatly with more data.');
   } else if (type === 'PN') {
     notes.push('Planetary nebulae are compact but high surface brightness.');
     notes.push(magBracket(mag, [
-      [8,  '15–20 minutes of integration should capture a bright, well-defined disk.'],
-      [10, '20–40 minutes of integration works well — the Seestar\'s narrowband/LP filter helps with emission detail.'],
+      [8,  '15–20 minutes should capture a bright, well-defined disk.'],
+      [10, '20–40 minutes works well — the Seestar\'s narrowband/LP filter helps with emission detail.'],
       [Infinity, 'Faint for a planetary — plan on an hour or more; it may look star-like in short subs until integration builds up.'],
     ]));
   } else if (type === 'EN' || type === 'RN' || type === 'SNR') {
     notes.push('Emission nebulae are excellent Seestar targets — the built-in LP filter boosts contrast.');
     notes.push(magBracket(mag, [
-      [8,  'Bright — 30 minutes of integration gives good results. Mosaic mode recommended if it\'s a large nebula.'],
-      [10, 'Faint — plan 1–2 hours of integration minimum. Multiple sessions can be stacked together in Siril.'],
-      [Infinity, 'Very faint of integration — plan 2–3+ hours, likely across multiple sessions; dark skies matter a lot here.'],
+      [8,  'Bright — 30 minutes gives good results. Mosaic mode recommended if it\'s a large nebula.'],
+      [10, 'Faint — plan 1–2 hours minimum. Multiple sessions can be stacked together in Siril.'],
+      [Infinity, 'Very faint — plan 2–3+ hours, likely across multiple sessions; dark skies matter a lot here.'],
     ]));
     notes.push('Try the enhanced mode if available; narrowband processing in Siril brings out fine detail.');
   } else {
