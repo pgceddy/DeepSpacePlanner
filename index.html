@@ -2046,10 +2046,23 @@ function renderIntegrationCurve(o) {
   const t0 = estimatedIntegrationMinutes(o); // baseline minutes, from magnitude bracket
   const input = document.getElementById('d-int-current');
 
-  // Load this object's saved progress (hours); default to the baseline itself
+  // Load this object's saved progress (hours); default to the baseline itself.
+  // Only set the field's text here — this runs once when the object opens,
+  // never on every keystroke (see the input listener below), so it can't
+  // fight with the user actively typing.
   let curHrs = parseFloat(localStorage.getItem(progressKey(o.id)));
   if (isNaN(curHrs) || curHrs < 0) curHrs = t0 / 60;
   input.value = curHrs.toFixed(1);
+
+  updateCurveVisuals(o, curHrs);
+}
+
+// Redraws the chart, table, and note for a given current-progress value.
+// Deliberately does not touch the input field's text — called on every
+// keystroke, and rewriting the field mid-type is what breaks typing.
+function updateCurveVisuals(o, curHrs) {
+  const t0 = estimatedIntegrationMinutes(o);
+  if (isNaN(curHrs) || curHrs < 0) curHrs = t0 / 60;
   const curMin = curHrs * 60;
 
   const canvas = document.getElementById('d-int-canvas');
@@ -2168,7 +2181,7 @@ document.getElementById('d-int-current').addEventListener('input', e => {
   const v = parseFloat(e.target.value);
   if (!_detailObj) return;
   if (!isNaN(v) && v >= 0) localStorage.setItem(progressKey(_detailObj.id), String(v));
-  renderIntegrationCurve(_detailObj);
+  updateCurveVisuals(_detailObj, isNaN(v) ? 0 : v);
 });
 
 // Compass direction lookup.
