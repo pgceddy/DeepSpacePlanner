@@ -267,6 +267,15 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
            display:flex;align-items:center;gap:6px}
 .dsect-hdr svg{width:11px;height:11px;flex-shrink:0}
 .dsect-body{font-size:.8rem;color:var(--text);line-height:1.65}
+
+/* Integration curve */
+#d-int-canvas{width:100%;height:104px;display:block}
+.int-table{width:100%;border-collapse:collapse;margin-top:8px;font-family:var(--mono);font-size:.62rem}
+.int-table th{text-align:left;color:var(--lo);font-weight:400;font-size:.5rem;
+              letter-spacing:.06em;text-transform:uppercase;padding:4px 6px;border-bottom:1px solid var(--border)}
+.int-table td{padding:5px 6px;border-bottom:1px solid var(--border);color:var(--text)}
+.int-table tr.knee td{color:var(--amber);font-weight:600}
+.int-note{font-size:.62rem;color:var(--dim);line-height:1.5;margin-top:6px}
 .ai-loading{display:flex;align-items:center;gap:8px;color:var(--lo);
             font-family:var(--mono);font-size:.65rem}
 .ai-loading .spin{width:12px;height:12px;border-width:2px;flex-shrink:0}
@@ -546,6 +555,22 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
                 Seestar S50 Notes
             </div>
             <div class="dsect-body" id="d-seestar-body"></div>
+        </div>
+
+        <!-- Integration curve — SNR vs. total time, diminishing returns -->
+        <div class="dsect" id="d-integration">
+            <div class="dsect-hdr">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <polyline points="12 6 12 12 16 14" />
+                </svg>
+                Integration Curve
+            </div>
+            <div class="dsect-body">
+                <canvas id="d-int-canvas" width="600" height="150"></canvas>
+                <table class="int-table" id="d-int-table"></table>
+                <div class="int-note" id="d-int-note"></div>
+            </div>
         </div>
 
         <!--Siril Processing Tips-->
@@ -1977,6 +2002,113 @@ function seestarNotes(o) {
   return notes.join(' ');
 }
 
+// Rough baseline integration time (minutes) for an object, derived from the
+// same type/magnitude brackets as seestarNotes() above — reused here as a
+// single number rather than prose, to seed the integration curve.
+function estimatedIntegrationMinutes(o) {
+  const type = o.type, mag = o.mag;
+  if (type === 'GC') {
+    return magBracket(mag, [[6, 7.5], [9, 25], [Infinity, 52.5]]);
+  } else if (type === 'OC') {
+    return 10;
+  } else if (type === 'Gx') {
+    return magBracket(mag, [[7, 25], [9, 37.5], [10.5, 90], [12, 210], [Infinity, 270]]);
+  } else if (type === 'PN') {
+    return magBracket(mag, [[8, 17.5], [10, 30], [Infinity, 75]]);
+  } else if (type === 'EN' || type === 'RN' || type === 'SNR') {
+    return magBracket(mag, [[8, 30], [10, 90], [Infinity, 150]]);
+  }
+  return 30;
+}
+
+// Integration curve — plots relative SNR (∝ √t) against total integration
+// time for the selected object, seeded from its own estimated baseline
+// (estimatedIntegrationMinutes), and marks the point where each additional
+// hour buys less than KNEE_THRESH_PCT more SNR. Assumes shot-noise-limited
+// conditions; systematics (gradients, flats, LP glow) aren't modeled here.
+const KNEE_THRESH_PCT = 3; // % SNR gain per additional hour, past which we flag the knee
+
+function renderIntegrationCurve(o) {
+  const t0 = estimatedIntegrationMinutes(o); // minutes
+  const canvas = document.getElementById('d-int-canvas');
+  const dpr = window.devicePixelRatio || 1;
+  const w = canvas.clientWidth || 300, h = 104;
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, w, h);
+
+  const pad = { l: 34, r: 10, t: 8, b: 18 };
+  const tMaxMult = 6;
+  const tMax = t0 * tMaxMult;
+  const snrMax = 100 * Math.sqrt(tMaxMult);
+  const px = t => pad.l + (t - t0) / (tMax - t0) * (w - pad.l - pad.r);
+  const py = s => (h - pad.b) - (s - 100) / (snrMax - 100) * (h - pad.b - pad.t);
+
+  // axes
+  ctx.strokeStyle = '#ddd5c2'; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, h - pad.b); ctx.lineTo(w - pad.r, h - pad.b);
+  ctx.stroke();
+
+  // 100% gridline
+  ctx.strokeStyle = 'rgba(168,159,140,.35)'; ctx.setLineDash([2, 3]);
+  ctx.beginPath(); ctx.moveTo(pad.l, py(100)); ctx.lineTo(w - pad.r, py(100)); ctx.stroke();
+  ctx.setLineDash([]);
+
+  // curve
+  ctx.strokeStyle = '#1c7fc0'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  const N = 80;
+  for (let i = 0; i <= N; i++) {
+    const t = t0 + (tMax - t0) * i / N;
+    const s = 100 * Math.sqrt(t / t0);
+    const x = px(t), y = py(s);
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+
+  // knee: derivative 100*60/(2*sqrt(t0*t)) [%/hr] = KNEE_THRESH_PCT -> solve for t
+  const tKnee = Math.pow(3000 / KNEE_THRESH_PCT, 2) / t0;
+  const kneeInRange = tKnee > t0 && tKnee <= tMax;
+  if (kneeInRange) {
+    const sKnee = 100 * Math.sqrt(tKnee / t0);
+    const x = px(tKnee), y = py(sKnee);
+    ctx.fillStyle = '#a3590f';
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(163,89,15,.4)'; ctx.setLineDash([2, 3]);
+    ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, h - pad.b); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // x-axis tick labels
+  ctx.fillStyle = '#a89f8c'; ctx.font = "9px 'SF Mono','Fira Mono',monospace"; ctx.textAlign = 'center';
+  for (let m = 1; m <= tMaxMult; m++) ctx.fillText(m + '×', px(t0 * m), h - pad.b + 12);
+
+  // milestone table
+  const milestones = [10, 25, 50, 100];
+  let rows = '<tr><th>SNR gain</th><th>total time</th><th>added</th></tr>';
+  milestones.forEach(pct => {
+    const mult = Math.pow(1 + pct / 100, 2);
+    const tNeed = t0 * mult;
+    const added = tNeed - t0;
+    const isKnee = kneeInRange && Math.abs(tNeed - tKnee) < (tMax - t0) / 16;
+    const fmt = m => m < 60 ? Math.round(m) + 'm' : (m / 60).toFixed(1) + 'h';
+    rows += `<tr class="${isKnee ? 'knee' : ''}"><td>+${pct}%</td><td>${fmt(tNeed)}</td><td>+${fmt(added)}</td></tr>`;
+  });
+  document.getElementById('d-int-table').innerHTML = rows;
+
+  // note
+  const noteEl = document.getElementById('d-int-note');
+  const t0Fmt = t0 < 60 ? Math.round(t0) + ' min' : (t0 / 60).toFixed(1) + ' hr';
+  if (kneeInRange) {
+    const kneeFmt = tKnee < 60 ? Math.round(tKnee) + ' min' : (tKnee / 60).toFixed(1) + ' hr';
+    noteEl.textContent = `Curve seeded from the ${t0Fmt} baseline above. Past ${kneeFmt} total, each extra hour buys under ${KNEE_THRESH_PCT}% more SNR — good stopping point unless you're chasing very faint detail. Assumes shot-noise-limited conditions.`;
+  } else {
+    noteEl.textContent = `Curve seeded from the ${t0Fmt} baseline above. Even at ${tMaxMult}× that time you're still gaining over ${KNEE_THRESH_PCT}% SNR per hour — this target keeps rewarding integration well beyond the usual range.`;
+  }
+}
+
 // Compass direction lookup.
 function degreesToDirection(degrees) {
     const directions = ['N', 'NNE', 'NE', 'ENE', 'E', 'ESE', 'SE', 'SSE', 'S', 'SSW', 'SW', 'WSW', 'W', 'WNW', 'NW', 'NNW'];
@@ -2212,6 +2344,9 @@ function openDetail(id, sep) {
 
   // Seestar notes — instant, no network
   document.getElementById('d-seestar-body').textContent = seestarNotes(o);
+
+  // Integration curve — seeded from the same magnitude data as the notes above
+  renderIntegrationCurve(o);
 
   // Siril processing notes 
   document.getElementById('d-siril-body').innerHTML = getSirilNotes(o);
