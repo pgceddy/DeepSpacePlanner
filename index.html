@@ -269,12 +269,21 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
 .dsect-body{font-size:.8rem;color:var(--text);line-height:1.65}
 
 /* Integration curve */
-#d-int-canvas{width:100%;height:104px;display:block}
-.int-table{width:100%;border-collapse:collapse;margin-top:8px;font-family:var(--mono);font-size:.62rem}
-.int-table th{text-align:left;color:var(--lo);font-weight:400;font-size:.5rem;
-              letter-spacing:.06em;text-transform:uppercase;padding:4px 6px;border-bottom:1px solid var(--border)}
-.int-table td{padding:5px 6px;border-bottom:1px solid var(--border);color:var(--text)}
+#d-int-canvas{width:100%;max-width:420px;aspect-ratio:2.3/1;display:block}
+.int-current-row{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.int-current-row label{font-family:var(--mono);font-size:.58rem;color:#1c7fc0;
+                        letter-spacing:.04em;text-transform:uppercase;flex:1}
+.int-current-row input{width:64px;font-family:var(--mono);font-size:.78rem;color:var(--amber);
+                        background:var(--panel);border:1px solid var(--border);border-radius:4px;
+                        padding:4px 6px;text-align:right}
+.int-current-row span{font-family:var(--mono);font-size:.6rem;color:var(--lo)}
+.int-table{width:100%;border-collapse:collapse;margin-top:8px;font-family:var(--mono);font-size:.6rem}
+.int-table th{text-align:left;color:var(--lo);font-weight:400;font-size:.48rem;
+              letter-spacing:.05em;text-transform:uppercase;padding:4px 5px;border-bottom:1px solid var(--border)}
+.int-table td{padding:5px;border-bottom:1px solid var(--border);color:var(--text)}
+.int-table td.dim{color:var(--lo)}
 .int-table tr.knee td{color:var(--amber);font-weight:600}
+.int-table tr.reached td{color:#2f7d2f}
 .int-note{font-size:.62rem;color:var(--dim);line-height:1.5;margin-top:6px}
 .ai-loading{display:flex;align-items:center;gap:8px;color:var(--lo);
             font-family:var(--mono);font-size:.65rem}
@@ -567,6 +576,11 @@ header{background:var(--surf);border-bottom:1px solid var(--border);padding:10px
                 Integration Curve
             </div>
             <div class="dsect-body">
+                <div class="int-current-row">
+                    <label for="d-int-current">Your integration so far</label>
+                    <input type="number" id="d-int-current" min="0" step="0.1" inputmode="decimal">
+                    <span>hrs</span>
+                </div>
                 <canvas id="d-int-canvas" width="600" height="150"></canvas>
                 <table class="int-table" id="d-int-table"></table>
                 <div class="int-note" id="d-int-note"></div>
@@ -2029,17 +2043,28 @@ function estimatedIntegrationMinutes(o) {
 const KNEE_THRESH_PCT = 3; // % SNR gain per additional hour, past which we flag the knee
 
 function renderIntegrationCurve(o) {
-  const t0 = estimatedIntegrationMinutes(o); // minutes
+  const t0 = estimatedIntegrationMinutes(o); // baseline minutes, from magnitude bracket
+  const input = document.getElementById('d-int-current');
+
+  // Load this object's saved progress (hours); default to the baseline itself
+  let curHrs = parseFloat(localStorage.getItem(progressKey(o.id)));
+  if (isNaN(curHrs) || curHrs < 0) curHrs = t0 / 60;
+  input.value = curHrs.toFixed(1);
+  const curMin = curHrs * 60;
+
   const canvas = document.getElementById('d-int-canvas');
   const dpr = window.devicePixelRatio || 1;
-  const w = canvas.clientWidth || 300, h = 104;
+  const w = canvas.clientWidth || 300;
+  const h = canvas.clientHeight || Math.round(w / 2.3);
   canvas.width = w * dpr; canvas.height = h * dpr;
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, w, h);
 
-  const pad = { l: 34, r: 10, t: 8, b: 18 };
-  const tMaxMult = 6;
+  const pad = { l: 34, r: 10, t: 10, b: 20 };
+  // Make sure the plotted range covers both the baseline curve and wherever
+  // the user's actual progress sits, even if they're already well past 6×.
+  const tMaxMult = Math.max(6, Math.ceil((curMin / t0) * 1.15));
   const tMax = t0 * tMaxMult;
   const snrMax = 100 * Math.sqrt(tMaxMult);
   const px = t => pad.l + (t - t0) / (tMax - t0) * (w - pad.l - pad.r);
@@ -2081,33 +2106,70 @@ function renderIntegrationCurve(o) {
     ctx.setLineDash([]);
   }
 
+  // current-progress marker — where you actually are right now
+  if (curMin > 0) {
+    const sCur = 100 * Math.sqrt(curMin / t0);
+    const x = px(curMin), y = py(sCur);
+    ctx.strokeStyle = 'rgba(47,125,47,.5)'; ctx.setLineDash([2, 3]);
+    ctx.beginPath(); ctx.moveTo(x, pad.t); ctx.lineTo(x, h - pad.b); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#2f7d2f';
+    ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2); ctx.fill();
+  }
+
   // x-axis tick labels
   ctx.fillStyle = '#a89f8c'; ctx.font = "9px 'SF Mono','Fira Mono',monospace"; ctx.textAlign = 'center';
   for (let m = 1; m <= tMaxMult; m++) ctx.fillText(m + '×', px(t0 * m), h - pad.b + 12);
 
-  // milestone table
+  // milestone table — % gain from baseline, plus % gain from your current progress
+  const fmt = m => m < 60 ? Math.round(m) + 'm' : (m / 60).toFixed(1) + 'h';
   const milestones = [10, 25, 50, 100];
-  let rows = '<tr><th>SNR gain</th><th>total time</th><th>added</th></tr>';
+  let rows = '<tr><th>SNR (baseline)</th><th>total time</th><th>added</th><th>vs. yours</th></tr>';
   milestones.forEach(pct => {
     const mult = Math.pow(1 + pct / 100, 2);
     const tNeed = t0 * mult;
     const added = tNeed - t0;
     const isKnee = kneeInRange && Math.abs(tNeed - tKnee) < (tMax - t0) / 16;
-    const fmt = m => m < 60 ? Math.round(m) + 'm' : (m / 60).toFixed(1) + 'h';
-    rows += `<tr class="${isKnee ? 'knee' : ''}"><td>+${pct}%</td><td>${fmt(tNeed)}</td><td>+${fmt(added)}</td></tr>`;
+    let cls = isKnee ? 'knee' : '';
+    let vsYours;
+    if (tNeed <= curMin) {
+      cls = 'reached';
+      vsYours = 'reached';
+    } else {
+      const gainFromCur = (Math.sqrt(tNeed / curMin) - 1) * 100;
+      vsYours = `+${gainFromCur.toFixed(0)}%`;
+    }
+    rows += `<tr class="${cls}"><td>+${pct}%</td><td>${fmt(tNeed)}</td><td>+${fmt(added)}</td><td>${vsYours}</td></tr>`;
   });
   document.getElementById('d-int-table').innerHTML = rows;
 
   // note
   const noteEl = document.getElementById('d-int-note');
   const t0Fmt = t0 < 60 ? Math.round(t0) + ' min' : (t0 / 60).toFixed(1) + ' hr';
+  const curFmt = fmt(curMin);
+  const curVsBaselinePct = ((Math.sqrt(curMin / t0) - 1) * 100);
+  const curLine = Math.abs(curMin - t0) < 0.5
+    ? `Your current progress (${curFmt}) is right at the baseline.`
+    : `Your current progress (${curFmt}) is ${curVsBaselinePct >= 0 ? '+' : ''}${curVsBaselinePct.toFixed(0)}% SNR vs. the baseline — the green line/dot on the chart. The "vs. yours" column shows the gain from where you are now, not from the baseline.`;
+  let kneeLine;
   if (kneeInRange) {
-    const kneeFmt = tKnee < 60 ? Math.round(tKnee) + ' min' : (tKnee / 60).toFixed(1) + ' hr';
-    noteEl.textContent = `Curve seeded from the ${t0Fmt} baseline above. Past ${kneeFmt} total, each extra hour buys under ${KNEE_THRESH_PCT}% more SNR — good stopping point unless you're chasing very faint detail. Assumes shot-noise-limited conditions.`;
+    const kneeFmt = fmt(tKnee);
+    kneeLine = `Past ${kneeFmt} total, each extra hour buys under ${KNEE_THRESH_PCT}% more SNR — good stopping point unless you're chasing very faint detail.`;
   } else {
-    noteEl.textContent = `Curve seeded from the ${t0Fmt} baseline above. Even at ${tMaxMult}× that time you're still gaining over ${KNEE_THRESH_PCT}% SNR per hour — this target keeps rewarding integration well beyond the usual range.`;
+    kneeLine = `Even at ${tMaxMult}× baseline you're still gaining over ${KNEE_THRESH_PCT}% SNR per hour — this target keeps rewarding integration well beyond the usual range.`;
   }
+  noteEl.textContent = `Baseline is ${t0Fmt}, from the notes above. ${curLine} ${kneeLine} Assumes shot-noise-limited conditions.`;
 }
+
+// Wire the "your integration so far" input once — it's reused across every
+// object, so persist per-object progress in localStorage and re-render
+// against whichever object is currently open.
+document.getElementById('d-int-current').addEventListener('input', e => {
+  const v = parseFloat(e.target.value);
+  if (!_detailObj) return;
+  if (!isNaN(v) && v >= 0) localStorage.setItem(progressKey(_detailObj.id), String(v));
+  renderIntegrationCurve(_detailObj);
+});
 
 // Compass direction lookup.
 function degreesToDirection(degrees) {
@@ -2126,6 +2188,7 @@ function degreesToDirection(degrees) {
 
 // ── Observation Log ────────────────────────────────────
 function logKey(id) { return `obslog:${id}`; }
+function progressKey(id) { return `intprogress:${id}`; }
 
 function getLog(id) {
     try {
