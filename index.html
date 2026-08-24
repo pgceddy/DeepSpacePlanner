@@ -2074,7 +2074,7 @@ function updateCurveVisuals(o, curHrs) {
   ctx.scale(dpr, dpr);
   ctx.clearRect(0, 0, w, h);
 
-  const pad = { l: 34, r: 10, t: 10, b: 20 };
+  const pad = { l: 40, r: 10, t: 10, b: 20 };
   // Make sure the plotted range covers both the baseline curve and wherever
   // the user's actual progress sits, even if they're already well past 6×.
   const tMaxMult = Math.max(6, Math.ceil((curMin / t0) * 1.15));
@@ -2089,10 +2089,21 @@ function updateCurveVisuals(o, curHrs) {
   ctx.moveTo(pad.l, pad.t); ctx.lineTo(pad.l, h - pad.b); ctx.lineTo(w - pad.r, h - pad.b);
   ctx.stroke();
 
-  // 100% gridline
-  ctx.strokeStyle = 'rgba(168,159,140,.35)'; ctx.setLineDash([2, 3]);
-  ctx.beginPath(); ctx.moveTo(pad.l, py(100)); ctx.lineTo(w - pad.r, py(100)); ctx.stroke();
-  ctx.setLineDash([]);
+  // y-axis gridlines + % labels — pick a step that gives ~3-5 lines across the range
+  const snrRange = snrMax - 100;
+  const stepCandidates = [10, 25, 50, 100, 150, 200, 250, 500];
+  const yStep = stepCandidates.find(s => snrRange / s <= 5) || 500;
+  ctx.font = "9px 'SF Mono','Fira Mono',monospace";
+  ctx.textAlign = 'right';
+  for (let s = 100; s <= snrMax + 0.01; s += yStep) {
+    const y = py(s);
+    ctx.strokeStyle = s === 100 ? 'rgba(168,159,140,.5)' : 'rgba(168,159,140,.22)';
+    ctx.setLineDash(s === 100 ? [] : [2, 3]);
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(w - pad.r, y); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#a89f8c';
+    ctx.fillText(Math.round(s) + '%', pad.l - 5, y + 3);
+  }
 
   // curve
   ctx.strokeStyle = '#1c7fc0'; ctx.lineWidth = 2;
