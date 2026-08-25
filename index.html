@@ -1206,7 +1206,7 @@ async function loadCatalog() {
                 if (o.name === id && name !== id) o.name = name; // upgrade to common name
                 if (o.size == null && size != null) { o.size = size; o.sizeMin = sizeMin; }
             } else {
-                if (mag === 99.0 || mag >= 13.0) {
+                if (mag >= 13.0) {
                     continue;
                 }
                 CATALOG.push({ id, name, type, ra, dec, mag, con, desc: '', size, sizeMin });
