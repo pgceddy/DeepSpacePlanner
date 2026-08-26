@@ -2042,7 +2042,7 @@ function estimatedIntegrationMinutes(o) {
 // (estimatedIntegrationMinutes), and marks the point where each additional
 // hour buys less than KNEE_THRESH_PCT more SNR. Assumes shot-noise-limited
 // conditions; systematics (gradients, flats, LP glow) aren't modeled here.
-const KNEE_THRESH_PCT = 5; // % SNR gain per additional hour, past which we flag the knee
+const KNEE_THRESH_PCT = 8; // % SNR gain per additional hour, past which we flag the knee
 
 function renderIntegrationCurve(o) {
   const t0 = estimatedIntegrationMinutes(o); // baseline minutes, from magnitude bracket
